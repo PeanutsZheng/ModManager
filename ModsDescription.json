@@ -1,0 +1,10 @@
+{
+  "SFM_custom_mission_v2": {
+    "description": "SFM_custom_mission_v2插件附属的文件夹，修改其中的config文件可以修改手机的颜色",
+    "In": "plugins"
+  },
+  "SFM_custom_mission_v2.dll": {
+    "description": "自定义任务插件 V2 版本",
+    "In": "plugins"
+  }
+}
