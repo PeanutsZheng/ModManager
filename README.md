@@ -1,22 +1,18 @@
-# Tauri + React + Typescript
-
-This template should help get you started developing with Tauri, React and Typescript in Vite.
-
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+# ModManager
+> A Mod manager for SecretFlaserManaka.
 
 # Install
-Need Node.js and Rust.
-
+Tauri + React + Typescript. Need Node.js and Rust. See [Tauri pre-requisites](https://tauri.app/start/prerequisites/)
 
 ```powershell
 cd ModManager
+
+# Install
 npm install
 
-# 测试
+# Debug
 npm run tauri dev
 
-# 构筑 Release 版本
+# Release
 npm run tauri build
 ```
