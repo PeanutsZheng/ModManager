@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink, Outlet } from "react-router-dom";
 import { useState } from "react";
 import "./App.css";
-import logo from "../public/manaka-logo.png";
+import logo from "/manaka-logo.png";
 import StartPage from "./components/StartPage.tsx";
 import ModPage from "./components/ModPage.tsx";
 import ThemeToggle from "./components/ThemeToggle.tsx";

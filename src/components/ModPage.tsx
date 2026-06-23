@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import ModTooltip from "./ModTooltip.tsx";
-import { loadDescriptions, remainingTime, type ModDescription } from "../utils/utils.tsx";
+import { loadDescriptions, type ModDescription } from "../utils/utils.tsx";
 
 interface ModEntry {
 	name: string;
@@ -59,8 +59,6 @@ const ModPage = ({ title, defaultPath }: ModPageProps) => {
 		try {
 			const result = await invoke<ModEntry[]>("scan_mods", { path: target });
 			setEntries(result);
-			// 注册路径到后台清理线程
-			invoke("watch_path", { path: target }).catch(() => { });
 		} catch (e) {
 			setError(String(e));
 			setEntries([]);
@@ -111,6 +109,15 @@ const ModPage = ({ title, defaultPath }: ModPageProps) => {
 	const handleRestore = async (name: string) => {
 		try {
 			await invoke("restore_mod", { basePath: path, name });
+			await scan(path);
+		} catch (e) {
+			setError(String(e));
+		}
+	};
+
+	const handlePurge = async (name: string) => {
+		try {
+			await invoke("purge_mod", { basePath: path, name });
 			await scan(path);
 		} catch (e) {
 			setError(String(e));
@@ -178,7 +185,7 @@ const ModPage = ({ title, defaultPath }: ModPageProps) => {
 					<tbody>
 						{entries.map((entry) => (
 							<tr
-								key={entry.name}
+								key={`${entry.name}-${entry.deleted}`}
 								className={entry.deleted ? "deleted-row" : ""}
 								onMouseMove={(e) => handleMouseMove(e, entry)}
 								onMouseLeave={handleMouseLeave}
@@ -188,7 +195,6 @@ const ModPage = ({ title, defaultPath }: ModPageProps) => {
 									{entry.deleted ? (
 										<span className="DeletedName">
 											<s>{entry.name}</s>
-											<span className="RemainingTime">{remainingTime(entry.deleted_at)}</span>
 										</span>
 									) : (
 										entry.name
@@ -197,16 +203,31 @@ const ModPage = ({ title, defaultPath }: ModPageProps) => {
 								<td>{entry.is_dir ? "Folder" : "File"}</td>
 								<td>{entry.is_dir ? "—" : formatSize(entry.size)}</td>
 								<td className="ActionsCell">
-									<button
-										className={`ActionButton ${entry.deleted ? "restore" : "delete"}`}
-										onClick={() =>
-											entry.deleted
-												? handleRestore(entry.name)
-												: handleDelete(entry.name)
-										}
-									>
-										{entry.deleted ? "Restore" : "Delete"}
-									</button>
+									{entry.deleted ? (
+										<span className="ActionButtonGroup">
+											<button
+												className="ActionButton restore"
+												onClick={() => handleRestore(entry.name)}
+											>
+												<span className="ActionShort">R</span>
+												<span className="ActionFull">Restore</span>
+											</button>
+											<button
+												className="ActionButton purge"
+												onClick={() => handlePurge(entry.name)}
+											>
+												<span className="ActionShort">P</span>
+												<span className="ActionFull">Purge</span>
+											</button>
+										</span>
+									) : (
+										<button
+											className="ActionButton delete"
+											onClick={() => handleDelete(entry.name)}
+										>
+											Delete
+										</button>
+									)}
 								</td>
 							</tr>
 						))}

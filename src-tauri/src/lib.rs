@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct ModDescription {
@@ -13,7 +13,7 @@ pub struct ModDescription {
     pub r#in: String,
 }
 
-const TRASH_DIR_NAME: &str = ".modmanager_trash";
+const TRASH_DIR_NAME: &str = ".trans";
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct ModEntry {
@@ -24,20 +24,10 @@ pub struct ModEntry {
     deleted_at: Option<u64>,
 }
 
-/// Trash Time limit (seconds)
-const TRASH_TTL_SECS: u64 = 3600;
-/// Scan trash cleanup interval (seconds)
-const TRASH_CLEANUP_INTERVAL_SECS: u64 = 300;
-
-/// Global app state: holds the running game process, a shared log buffer,
-/// and the list of paths to periodically clean up.
+/// Global app state: holds the running game process and a shared log buffer.
 struct AppState {
     child: Option<Child>,
     log_buffer: Arc<Mutex<Vec<String>>>,
-    /// Trans paths.
-    watched_paths: Arc<Mutex<Vec<String>>>,
-    /// Semaphore of endup the clean thread.
-    cleanup_stop: Arc<Mutex<bool>>,
 }
 
 impl AppState {
@@ -45,14 +35,28 @@ impl AppState {
         Self {
             child: None,
             log_buffer: Arc::new(Mutex::new(Vec::new())),
-            watched_paths: Arc::new(Mutex::new(Vec::new())),
-            cleanup_stop: Arc::new(Mutex::new(false)),
         }
     }
 }
 
-fn trash_dir(base_path: &Path) -> PathBuf {
-    base_path.join(TRASH_DIR_NAME)
+/// Resolve the trash subdirectory for a given base_path.
+/// The trash root is always under the exe directory (not inside the mod folder),
+/// so the game's mod loader won't recursively scan deleted dlls.
+/// Inside the trash, entries are grouped by the last component of base_path
+/// to avoid name collisions across different mod pages.
+fn trash_subdir(base_path: &Path) -> PathBuf {
+    let exe_dir = std::env::current_exe()
+        .expect("Failed to get exe path")
+        .parent()
+        .expect("Cannot determine exe directory")
+        .to_path_buf();
+    let trash_root = exe_dir.join(TRASH_DIR_NAME);
+    // Use the last component of base_path as sub-directory
+    let sub = base_path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "default".to_string());
+    trash_root.join(sub)
 }
 
 fn now_secs() -> u64 {
@@ -105,76 +109,6 @@ fn drain_stream<T: std::io::Read>(stream: T, label: &str, log_buffer: Arc<Mutex<
     }
 }
 
-/// Sacn trash path, delete timed files/directories
-/// Returns the number of entries that were deleted.
-fn cleanup_trash_for_path(base_path: &Path) -> usize {
-    let trash = trash_dir(base_path);
-    if !trash.exists() || !trash.is_dir() {
-        return 0;
-    }
-
-    let now = now_secs();
-    let mut removed = 0;
-
-    let Ok(read_dir) = fs::read_dir(&trash) else {
-        return 0;
-    };
-
-    for entry in read_dir.flatten() {
-        let raw_name = entry.file_name().to_string_lossy().to_string();
-        if let Some(pos) = raw_name.find("__") {
-            let ts: u64 = raw_name[..pos].parse().unwrap_or(0);
-            if now.saturating_sub(ts) > TRASH_TTL_SECS {
-                let path = entry.path();
-                if path.is_dir() {
-                    let _ = fs::remove_dir_all(&path);
-                } else {
-                    let _ = fs::remove_file(&path);
-                }
-                removed += 1;
-            }
-        }
-    }
-
-    removed
-}
-
-/// Background cleanup thread: regularly scans the trash for all watched_paths and deletes expired entries
-fn trash_cleanup_loop(watched_paths: Arc<Mutex<Vec<String>>>, stop: Arc<Mutex<bool>>) {
-    loop {
-        // Check the cleanup_stop
-        {
-            let stop = stop.lock().unwrap();
-            if *stop {
-                break;
-            }
-        }
-
-        // List the watched paths
-        let paths: Vec<String> = {
-            let wp = watched_paths.lock().unwrap();
-            wp.clone()
-        };
-
-        for path_str in &paths {
-            if let Ok(dir) = resolve_path(path_str) {
-                cleanup_trash_for_path(&dir);
-            }
-        }
-
-        // Sacn the paths each TRASH_CLEANUP_INTERVAL_SECS s, and check cleanu_stop per sec.
-        for _ in 0..TRASH_CLEANUP_INTERVAL_SECS {
-            {
-                let stop = stop.lock().unwrap();
-                if *stop {
-                    return;
-                }
-            }
-            std::thread::sleep(Duration::from_secs(1));
-        }
-    }
-}
-
 #[tauri::command]
 fn scan_mods(path: &str) -> Result<Vec<ModEntry>, String> {
     let dir = resolve_path(path)?;
@@ -189,9 +123,6 @@ fn scan_mods(path: &str) -> Result<Vec<ModEntry>, String> {
     for entry in read_dir {
         let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
         let name = entry.file_name().to_string_lossy().to_string();
-        if name == TRASH_DIR_NAME {
-            continue;
-        }
         let metadata = entry
             .metadata()
             .map_err(|e| format!("Failed to read metadata: {}", e))?;
@@ -204,8 +135,8 @@ fn scan_mods(path: &str) -> Result<Vec<ModEntry>, String> {
         });
     }
 
-    // Scan trashed entries
-    let trash = trash_dir(&dir);
+    // Scan trashed entries (from exe-root trash subdirectory)
+    let trash = trash_subdir(&dir);
     if trash.exists() && trash.is_dir() {
         let trash_read =
             fs::read_dir(&trash).map_err(|e| format!("Failed to read trash directory: {}", e))?;
@@ -262,7 +193,7 @@ fn delete_mod(base_path: &str, name: &str) -> Result<(), String> {
         return Err(format!("File not found: {}", name));
     }
 
-    let trash = trash_dir(&dir);
+    let trash = trash_subdir(&dir);
     fs::create_dir_all(&trash).map_err(|e| format!("Failed to create trash directory: {}", e))?;
 
     let trash_name = format!("{}__{}", now_secs(), name);
@@ -276,7 +207,7 @@ fn delete_mod(base_path: &str, name: &str) -> Result<(), String> {
 #[tauri::command]
 fn restore_mod(base_path: &str, name: &str) -> Result<(), String> {
     let dir = resolve_path(base_path)?;
-    let trash = trash_dir(&dir);
+    let trash = trash_subdir(&dir);
     if !trash.exists() {
         return Err("Trash directory does not exist".into());
     }
@@ -290,6 +221,37 @@ fn restore_mod(base_path: &str, name: &str) -> Result<(), String> {
             if original == name {
                 let dest = dir.join(name);
                 fs::rename(entry.path(), &dest).map_err(|e| format!("Failed to restore: {}", e))?;
+                return Ok(());
+            }
+        }
+    }
+
+    Err(format!("Trashed file not found: {}", name))
+}
+
+/// Permanently delete a mod from the trash.
+#[tauri::command]
+fn purge_mod(base_path: &str, name: &str) -> Result<(), String> {
+    let dir = resolve_path(base_path)?;
+    let trash = trash_subdir(&dir);
+    if !trash.exists() {
+        return Err("Trash directory does not exist".into());
+    }
+
+    let read_dir = fs::read_dir(&trash).map_err(|e| format!("Failed to read trash: {}", e))?;
+    for entry in read_dir {
+        let entry = entry.map_err(|e| format!("Failed to read trash entry: {}", e))?;
+        let raw_name = entry.file_name().to_string_lossy().to_string();
+        if let Some(pos) = raw_name.find("__") {
+            let original = &raw_name[pos + 2..];
+            if original == name {
+                let path = entry.path();
+                if path.is_dir() {
+                    fs::remove_dir_all(&path)
+                        .map_err(|e| format!("Failed to purge directory: {}", e))?;
+                } else {
+                    fs::remove_file(&path).map_err(|e| format!("Failed to purge file: {}", e))?;
+                }
                 return Ok(());
             }
         }
@@ -418,21 +380,6 @@ fn kill_game(state: tauri::State<'_, Mutex<AppState>>) -> Result<(), String> {
     Ok(())
 }
 
-/// 将一个路径注册到清理线程的监听列表中。
-/// 前端每次 scan_mods 时可以调用，确保该路径的垃圾箱被定期清理。
-#[tauri::command]
-fn watch_path(path: String, state: tauri::State<'_, Mutex<AppState>>) -> Result<(), String> {
-    let app = state.lock().map_err(|e| format!("Lock error: {}", e))?;
-    let mut wp = app
-        .watched_paths
-        .lock()
-        .map_err(|e| format!("Lock error: {}", e))?;
-    if !wp.contains(&path) {
-        wp.push(path);
-    }
-    Ok(())
-}
-
 #[tauri::command]
 fn load_descriptions() -> Result<HashMap<String, ModDescription>, String> {
     let exe_dir = std::env::current_exe()
@@ -466,16 +413,6 @@ fn load_descriptions() -> Result<HashMap<String, ModDescription>, String> {
 pub fn run() {
     let state = Mutex::new(AppState::new());
 
-    // 启动后台垃圾箱清理线程
-    {
-        let app = state.lock().unwrap();
-        let paths = Arc::clone(&app.watched_paths);
-        let stop = Arc::clone(&app.cleanup_stop);
-        std::thread::spawn(move || {
-            trash_cleanup_loop(paths, stop);
-        });
-    }
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(state)
@@ -483,12 +420,12 @@ pub fn run() {
             scan_mods,
             delete_mod,
             restore_mod,
+            purge_mod,
             launch_game,
             is_game_running,
             get_game_log,
             kill_game,
-            load_descriptions,
-            watch_path
+            load_descriptions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

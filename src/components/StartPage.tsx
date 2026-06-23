@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import logo from "../../public/manaka-logo.png";
+import logo from "/manaka-logo.png";
 import { PopUp, usePopUp } from "./PopUp";
 
 // Relative to the exe's directory

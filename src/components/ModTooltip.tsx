@@ -1,5 +1,5 @@
 import { useRef, useLayoutEffect, useState } from "react";
-import { remainingTime, getModDescription, type ModDescription } from "../utils/utils";
+import { getModDescription, type ModDescription } from "../utils/utils";
 
 interface ModEntry {
     name: string;
@@ -61,12 +61,7 @@ const ModTooltip = ({ entry, descriptions, x, y }: ModTooltipProps) => {
             <div className="ModTooltipName">{entry.name}</div>
             <div className="ModTooltipStatus">
                 {entry.deleted ? (
-                    <>
-                        <span className="ModTooltipDeleted">deleted</span>
-                        <span className="ModTooltipRemaining">
-                            {remainingTime(entry.deleted_at)}
-                        </span>
-                    </>
+                    <span className="ModTooltipDeleted">deleted</span>
                 ) : (
                     "active"
                 )}

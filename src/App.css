@@ -454,6 +454,8 @@ html.dark .MainContent::after {
 .ModTable th:nth-child(4),
 .ModTable td:nth-child(4) {
     width: 20%;
+    white-space: normal;
+    overflow: visible;
 }
 
 .ModTable th {
@@ -503,37 +505,104 @@ html.dark .MainContent::after {
     flex-shrink: 1;
 }
 
-.RemainingTime {
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background-color: var(--hover-bg);
-    opacity: 0.8;
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-width: 52px;
-    text-align: center;
-}
 
 /* Action buttons */
 
 .ActionsCell {
     text-align: center;
+    white-space: normal;
+    overflow: visible;
+    vertical-align: middle;
 }
 
-.ActionButton {
+.ActionButtonGroup {
+    display: inline-block;
+    position: relative;
     width: 72px;
-    padding: 5px 0;
+    height: 26px;
+    vertical-align: middle;
+}
+
+.ActionButtonGroup .ActionButton {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 34px;
     border: none;
     border-radius: 6px;
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
     color: white;
+    text-align: center;
+    line-height: 26px;
+    z-index: 1;
+    overflow: hidden;
+    transition: width 0.2s ease, z-index 0s 0.2s;
+}
+
+/* R button: anchored to left edge */
+.ActionButtonGroup .ActionButton.restore {
+    left: 0;
+}
+
+/* P button: anchored to right edge */
+.ActionButtonGroup .ActionButton.purge {
+    right: 0;
+}
+
+/* Short & full label: cross-fade overlay */
+.ActionShort,
+.ActionFull {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: opacity 0.15s ease;
+}
+
+.ActionShort {
+    opacity: 1;
+}
+
+.ActionFull {
+    opacity: 0;
+}
+
+/* On hover: expand to full width, cover sibling */
+.ActionButtonGroup .ActionButton:hover {
+    width: 72px;
+    z-index: 2;
+    transition: width 0.2s ease, z-index 0s 0s;
+}
+
+.ActionButtonGroup .ActionButton:hover .ActionShort {
+    opacity: 0;
+}
+
+.ActionButtonGroup .ActionButton:hover .ActionFull {
+    opacity: 1;
+}
+
+/* Standalone delete button (not in a group) */
+.ActionButton.delete {
+    width: 72px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    color: white;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 26px;
     transition: opacity var(--transition-standard);
 }
 
-.ActionButton:hover {
+.ActionButton.delete:hover {
     opacity: 0.8;
 }
 
@@ -543,6 +612,10 @@ html.dark .MainContent::after {
 
 .ActionButton.restore {
     background-color: #2ecc71;
+}
+
+.ActionButton.purge {
+    background-color: #8e44ad;
 }
 
 /* Mod Tooltip */
@@ -590,12 +663,6 @@ html.dark .ModTooltip {
     font-weight: 600;
 }
 
-.ModTooltipRemaining {
-    font-size: 11px;
-    padding: 1px 5px;
-    border-radius: 4px;
-    background-color: var(--hover-bg);
-}
 
 .ModTooltipDesc {
     margin-top: 8px;
