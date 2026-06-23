@@ -19,7 +19,7 @@
         "maximizable": false,
         "minimizable": true,
         "fullscreen": false,
-        "decorations": true
+        "decorations": false
       }
     ],
     "security": {

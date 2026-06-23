@@ -36,5 +36,21 @@ The ModsDescription.json in the source code is just a sample file, you can modif
 # Future
 - Add resource download.
 - More mod description.
-- Add dir management and config file edit
+- Add the BepInEx frame download and version management.
 - Maybe more.
+
+# Updata
+
+<details>
+
+06.23: Add dir management and config file edit.
+
+</details>
+
+# Special thanks
+
+Thanks for:
+
+<img src="./public/useruser9527.png" width="75" > Useruser9527, <img src="./public/四重sympony.png" width="75" >四重sympony, <img src="./public/一り丫.png" width="75" > 一り丫.
+
+The ranking is in no particular order.

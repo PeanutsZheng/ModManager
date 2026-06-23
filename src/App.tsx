@@ -1,17 +1,38 @@
-import { BrowserRouter, Routes, Route, NavLink, Outlet } from "react-router-dom";
+﻿import { HashRouter, Routes, Route, NavLink, Outlet, useOutletContext } from "react-router-dom";
 import { useState } from "react";
 import "./App.css";
 import logo from "/manaka-logo.png";
 import StartPage from "./components/StartPage.tsx";
 import ModPage from "./components/ModPage.tsx";
+import ConfigPage from "./components/ConfigPage.tsx";
+import ConfigEditor from "./components/ConfigEditor.tsx";
 import ThemeToggle from "./components/ThemeToggle.tsx";
+import TitleBar from "./components/TitleBar.tsx";
+
+type SubDirUpdater = (key: string) => (sub: string) => void;
 
 const Layout = () => {
 	const [collapsed, setCollapsed] = useState(false);
+	const [subDirMap, setSubDirMap] = useState<Record<string, string>>({});
+
+	const updateSubDir = (key: string) => (sub: string) => {
+		setSubDirMap(prev => ({ ...prev, [key]: sub }));
+	};
+
+	const truncateLabel = (base: string, sub: string, maxLen: number = 14): string => {
+		if (!sub) return base;
+		const full = `${base}(${sub})`;
+		if (full.length <= maxLen) return full;
+		const over = full.length - maxLen + 1;
+		const truncatedSub = sub.length > over ? sub.slice(0, sub.length - over) + "\u2026" : sub;
+		return `${base}(${truncatedSub})`;
+	};
 
 	return (
 		<div className="AppContainer">
-			<aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
+			<TitleBar />
+			<div className="AppBody">
+				<aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
 				<div className="SidebarInner">
 					<div className="SidebarHeader">
 						<img src={logo} alt="Logo" width="50" height="50" style={{ borderRadius: '50%' }} />
@@ -26,13 +47,16 @@ const Layout = () => {
 							Start
 						</NavLink>
 						<NavLink to="/plugins" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							Plugins
+							{truncateLabel("Plugins", subDirMap["plugins"] || "")}
 						</NavLink>
 						<NavLink to="/v1" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							CM V1
+							{truncateLabel("CM V1", subDirMap["v1"] || "")}
 						</NavLink>
 						<NavLink to="/v2" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							CM V2
+							{truncateLabel("CM V2", subDirMap["v2"] || "")}
+						</NavLink>
+						<NavLink to="/config" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+							Config
 						</NavLink>
 					</nav>
 				</div>
@@ -43,32 +67,45 @@ const Layout = () => {
 				onClick={() => setCollapsed(!collapsed)}
 				title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 			>
-				<span className="ToggleIcon">{collapsed ? "›" : "‹"}</span>
+				<span className="ToggleIcon">{collapsed ? "\u203A" : "\u2039"}</span>
 			</button>
 
 			<main className="MainContent">
-				<Outlet />
+				<Outlet context={{ updateSubDir }} />
 			</main>
+			</div>
 		</div>
 	);
 };
 
-const PluginsPage = () => <ModPage title="Plugins" defaultPath="./BepInEx/plugins" />;
-const V1Page = () => <ModPage title="CM V1" defaultPath="./CustomMissions" />;
-const V2Page = () => <ModPage title="CM V2" defaultPath="./CustomMissions2" />;
+const PluginsPage = () => {
+	const { updateSubDir } = useOutletContext<{ updateSubDir: SubDirUpdater }>();
+	return <ModPage title="Plugins" defaultPath="./BepInEx/plugins" onSubDirChange={updateSubDir("plugins")} />;
+};
+const V1Page = () => {
+	const { updateSubDir } = useOutletContext<{ updateSubDir: SubDirUpdater }>();
+	return <ModPage title="CM V1" defaultPath="./CustomMissions" onSubDirChange={updateSubDir("v1")} />;
+};
+const V2Page = () => {
+	const { updateSubDir } = useOutletContext<{ updateSubDir: SubDirUpdater }>();
+	return <ModPage title="CM V2" defaultPath="./CustomMissions2" onSubDirChange={updateSubDir("v2")} />;
+};
 
 function App() {
 	return (
-		<BrowserRouter>
+		<HashRouter>
 			<Routes>
 				<Route path="/" element={<Layout />}>
 					<Route index element={<StartPage />} />
 					<Route path="plugins" element={<PluginsPage />} />
 					<Route path="v1" element={<V1Page />} />
 					<Route path="v2" element={<V2Page />} />
+					<Route path="config" element={<ConfigPage />} />
 				</Route>
+				{/* Editor window: no sidebar, standalone layout */}
+				<Route path="/config-editor" element={<ConfigEditor />} />
 			</Routes>
-		</BrowserRouter>
+		</HashRouter>
 	);
 }
 

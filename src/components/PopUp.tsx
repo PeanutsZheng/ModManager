@@ -39,12 +39,12 @@ const usePopUp = () => {
             const msg = prev.find((m) => m.id === id);
             if (!msg) return prev;
 
-            // 先触发 fade-out
+            // Fade-out
             const updated = prev.map((m) =>
                 m.id === id ? { ...m, visible: false } : m
             );
 
-            // 300ms 后真正移除
+            // Remove at 300ms
             setTimeout(() => {
                 setMessages((curr) => curr.filter((m) => m.id !== id));
             }, 300);
@@ -58,7 +58,7 @@ const usePopUp = () => {
             const id = Date.now() + Math.random();
 
             setMessages((prev) => {
-                // 最多 3 条，超出则移除最早的
+                // Max 3 items，if exceed, pop up the earlist
                 let next = [...prev];
                 if (next.length >= 3) {
                     const oldest = next[0];
@@ -68,7 +68,7 @@ const usePopUp = () => {
                 return [...next, { id, message, visible: false }];
             });
 
-            // 下一帧触发入场动画
+            // Show
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     setMessages((prev) =>
@@ -79,7 +79,7 @@ const usePopUp = () => {
                 });
             });
 
-            // 自动消失
+            // Time out
             if (duration > 0) {
                 setTimeout(() => removeMessage(id), duration);
             }

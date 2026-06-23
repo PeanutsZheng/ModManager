@@ -43,11 +43,70 @@ body {
 
 .AppContainer {
     display: flex;
+    flex-direction: column;
     height: 100vh;
     width: 100vw;
     background-color: var(--bg-clr);
     overflow: hidden;
     transition: background-color var(--transition-standard);
+}
+
+.AppBody {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ===== Custom Title Bar ===== */
+
+.TitleBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    padding: 0 8px;
+    background-color: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border-clr);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.TitleBarTitle {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.7;
+    padding-left: 4px;
+}
+
+.TitleBarButtons {
+    display: flex;
+    gap: 2px;
+}
+
+.TitleBarBtn {
+    width: 32px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--clr-text);
+    font-size: 12px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    font-family: inherit;
+    transition: background-color 0.15s;
+}
+
+.TitleBarBtn:hover {
+    background-color: var(--hover-bg);
+}
+
+.TitleBarBtn.close:hover {
+    background-color: #e74c3c;
+    color: #fff;
 }
 
 .Sidebar {
@@ -105,7 +164,7 @@ body {
 
 .SidebarToggle {
     position: absolute;
-    top: 16px;
+    top: 32px;
     left: 200px;
     width: 28px;
     height: 40px;
@@ -186,26 +245,14 @@ body {
     pointer-events: none;
     z-index: 0;
     background:
-        radial-gradient(circle 30px at 5% 85%, rgba(163, 194, 220, 0.35) 50%, transparent 50%),
-        radial-gradient(circle 28px at 9% 80%, rgba(163, 194, 220, 0.3) 50%, transparent 50%),
-        radial-gradient(circle 35px at 13% 88%, rgba(163, 194, 220, 0.35) 50%, transparent 50%),
-        radial-gradient(circle 22px at 18% 82%, rgba(163, 194, 220, 0.3) 50%, transparent 50%),
-        radial-gradient(circle 28px at 22% 86%, rgba(170, 202, 223, 0.35) 50%, transparent 50%),
-        radial-gradient(circle 40px at 30% 78%, rgba(243, 253, 255, 0.35) 50%, transparent 50%),
-        radial-gradient(circle 30px at 35% 85%, rgba(243, 253, 255, 0.4) 50%, transparent 50%),
-        radial-gradient(circle 25px at 39% 80%, rgba(243, 253, 255, 0.3) 50%, transparent 50%),
         radial-gradient(circle 35px at 45% 88%, rgba(170, 202, 223, 0.3) 50%, transparent 50%),
         radial-gradient(circle 28px at 50% 82%, rgba(170, 202, 223, 0.35) 50%, transparent 50%),
         radial-gradient(circle 40px at 55% 78%, rgba(163, 194, 220, 0.35) 50%, transparent 50%),
         radial-gradient(circle 30px at 60% 86%, rgba(163, 194, 220, 0.4) 50%, transparent 50%),
-        radial-gradient(circle 25px at 64% 82%, rgba(243, 253, 255, 0.3) 50%, transparent 50%),
-        radial-gradient(circle 35px at 70% 88%, rgba(243, 253, 255, 0.35) 50%, transparent 50%),
-        radial-gradient(circle 28px at 75% 80%, rgba(243, 253, 255, 0.4) 50%, transparent 50%),
         radial-gradient(circle 30px at 80% 85%, rgba(170, 202, 223, 0.35) 50%, transparent 50%),
         radial-gradient(circle 35px at 85% 78%, rgba(163, 194, 220, 0.3) 50%, transparent 50%),
         radial-gradient(circle 25px at 89% 84%, rgba(163, 194, 220, 0.35) 50%, transparent 50%),
-        radial-gradient(circle 28px at 93% 80%, rgba(170, 202, 223, 0.4) 50%, transparent 50%),
-        radial-gradient(circle 22px at 97% 86%, rgba(243, 253, 255, 0.3) 50%, transparent 50%);
+        radial-gradient(circle 28px at 93% 80%, rgba(170, 202, 223, 0.4) 50%, transparent 50%);
     transition: opacity var(--transition-standard);
 }
 
@@ -337,8 +384,46 @@ html.dark .MainContent::after {
     z-index: 1;
 }
 
+.ModPageHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.ModPageHeader h2 {
+    margin: 0;
+}
+
+.ModPageTitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    cursor: default;
+}
+
+.NavigateUpButton {
+    padding: 6px 16px;
+    border: 1px solid var(--border-clr);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: var(--sidebar-bg);
+    color: var(--clr-text);
+    transition: background-color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.NavigateUpButton:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-clr);
+}
+
 .ModPageContent h2 {
-    margin: 0 0 20px 0;
+    margin: 0;
 }
 
 .ScanBar {
@@ -486,6 +571,21 @@ html.dark .MainContent::after {
 
 .deleted-row:hover {
     opacity: 0.8;
+}
+
+/* Folder row (clickable) */
+
+.folder-row {
+    cursor: pointer;
+}
+
+.folder-row:hover {
+    background-color: var(--hover-bg);
+}
+
+.FolderName {
+    color: var(--accent-clr);
+    font-weight: 500;
 }
 
 .DeletedName {
@@ -908,4 +1008,120 @@ html.dark .popup-message-item {
     margin: 0;
     font-size: 14px;
     padding-right: 15px;
+}
+
+/* ===== Config Page ===== */
+
+.ConfigPath {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.ActionButton.edit {
+    width: 72px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    color: white;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 26px;
+    background-color: #3498db;
+    transition: opacity var(--transition-standard);
+}
+
+.ActionButton.edit:hover {
+    opacity: 0.8;
+}
+
+.ConfigEditorStandalone {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    color: var(--clr-text);
+}
+
+.ConfigEditorHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-clr);
+}
+
+.ConfigEditorHeader h3 {
+    margin: 0;
+}
+
+.ConfigEditorPath {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.ConfigEditorTextarea {
+    flex: 1;
+    padding: 16px 20px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    background-color: var(--main-bg);
+    color: var(--clr-text);
+    tab-size: 4;
+}
+
+.ConfigEditorLoading,
+.ConfigEditorError {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    font-size: 14px;
+}
+
+.ConfigEditorFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-clr);
+}
+
+.ConfigEditorBtn {
+    padding: 6px 20px;
+    border: 1px solid var(--border-clr);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--clr-text);
+    background-color: var(--sidebar-bg);
+    transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.ConfigEditorBtn:hover {
+    background-color: var(--hover-bg);
+}
+
+.ConfigEditorBtn.save {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.ConfigEditorBtn.save:hover {
+    opacity: 0.85;
+}
+
+.ConfigEditorBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
