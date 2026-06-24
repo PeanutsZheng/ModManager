@@ -51,6 +51,6 @@ The ModsDescription.json in the source code is just a sample file, you can modif
 
 Thanks for:
 
-<img src="./public/useruser9527.png" width="75" > Useruser9527, <img src="./public/四重sympony.png" width="75" >四重sympony, <img src="./public/一り丫.png" width="75" > 一り丫.
+<img src="./public/useruser9527.png" width="75" > Useruser9527, <img src="./public/四重sympony.png" width="75" >四重sympony, <img src="./public/达妮娅的猫.png" width="75" > 达妮娅的猫, <img src="./public/夜航星.png" width="75" > 夜航星, <img src="./public/一り丫.png" width="75" > 一り丫.
 
 The ranking is in no particular order.

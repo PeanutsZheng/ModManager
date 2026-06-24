@@ -4,6 +4,7 @@ import "./App.css";
 import logo from "/manaka-logo.png";
 import StartPage from "./components/StartPage.tsx";
 import ModPage from "./components/ModPage.tsx";
+import DownloadPage from "./components/DownloadPage.tsx";
 import ConfigPage from "./components/ConfigPage.tsx";
 import ConfigEditor from "./components/ConfigEditor.tsx";
 import ThemeToggle from "./components/ThemeToggle.tsx";
@@ -33,46 +34,49 @@ const Layout = () => {
 			<TitleBar />
 			<div className="AppBody">
 				<aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
-				<div className="SidebarInner">
-					<div className="SidebarHeader">
-						<img src={logo} alt="Logo" width="50" height="50" style={{ borderRadius: '50%' }} />
-						<div className="SidebarTitleRow">
-							<h3 className="SidebarTitle">Menu</h3>
-							<ThemeToggle />
+					<div className="SidebarInner">
+						<div className="SidebarHeader">
+							<img src={logo} alt="Logo" width="50" height="50" style={{ borderRadius: '50%' }} />
+							<div className="SidebarTitleRow">
+								<h3 className="SidebarTitle">Menu</h3>
+								<ThemeToggle />
+							</div>
 						</div>
+
+						<nav className="SidebarNav">
+							<NavLink to="/" end className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+								Start
+							</NavLink>
+							<NavLink to="/plugins" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+								{truncateLabel("Plugins", subDirMap["plugins"] || "")}
+							</NavLink>
+							<NavLink to="/v1" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+								{truncateLabel("CM V1", subDirMap["v1"] || "")}
+							</NavLink>
+							<NavLink to="/v2" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+								{truncateLabel("CM V2", subDirMap["v2"] || "")}
+							</NavLink>
+							<NavLink to="/download" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+								Download
+							</NavLink>
+							<NavLink to="/config" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
+								Config
+							</NavLink>
+						</nav>
 					</div>
+				</aside>
 
-					<nav className="SidebarNav">
-						<NavLink to="/" end className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							Start
-						</NavLink>
-						<NavLink to="/plugins" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							{truncateLabel("Plugins", subDirMap["plugins"] || "")}
-						</NavLink>
-						<NavLink to="/v1" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							{truncateLabel("CM V1", subDirMap["v1"] || "")}
-						</NavLink>
-						<NavLink to="/v2" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							{truncateLabel("CM V2", subDirMap["v2"] || "")}
-						</NavLink>
-						<NavLink to="/config" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-							Config
-						</NavLink>
-					</nav>
-				</div>
-			</aside>
+				<button
+					className={`SidebarToggle ${collapsed ? "collapsed" : ""}`}
+					onClick={() => setCollapsed(!collapsed)}
+					title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+				>
+					<span className="ToggleIcon">{collapsed ? "\u203A" : "\u2039"}</span>
+				</button>
 
-			<button
-				className={`SidebarToggle ${collapsed ? "collapsed" : ""}`}
-				onClick={() => setCollapsed(!collapsed)}
-				title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-			>
-				<span className="ToggleIcon">{collapsed ? "\u203A" : "\u2039"}</span>
-			</button>
-
-			<main className="MainContent">
-				<Outlet context={{ updateSubDir }} />
-			</main>
+				<main className="MainContent">
+					<Outlet context={{ updateSubDir }} />
+				</main>
 			</div>
 		</div>
 	);
@@ -100,6 +104,7 @@ function App() {
 					<Route path="plugins" element={<PluginsPage />} />
 					<Route path="v1" element={<V1Page />} />
 					<Route path="v2" element={<V2Page />} />
+					<Route path="download" element={<DownloadPage />} />
 					<Route path="config" element={<ConfigPage />} />
 				</Route>
 				{/* Editor window: no sidebar, standalone layout */}

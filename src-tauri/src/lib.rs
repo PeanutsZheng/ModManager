@@ -433,7 +433,7 @@ fn scan_configs() -> Result<Vec<ConfigEntry>, String> {
 
     let mut entries = Vec::new();
 
-    // Scan BepInEx/config/*.cfg
+    // Scan BepInEx/config/*.cfg and *.json
     let config_dir = exe_dir.join("BepInEx").join("config");
     if config_dir.exists() && config_dir.is_dir() {
         let read_dir = fs::read_dir(&config_dir)
@@ -441,7 +441,7 @@ fn scan_configs() -> Result<Vec<ConfigEntry>, String> {
         for entry in read_dir {
             let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
             let name = entry.file_name().to_string_lossy().to_string();
-            if name.to_lowercase().ends_with(".cfg") {
+            if name.to_lowercase().ends_with(".cfg") || name.to_lowercase().ends_with(".json") {
                 let metadata = entry
                     .metadata()
                     .map_err(|e| format!("Failed to read metadata: {}", e))?;
@@ -460,8 +460,8 @@ fn scan_configs() -> Result<Vec<ConfigEntry>, String> {
     // Check for NPCBehaviorMod/config.txt
     let npc_path = exe_dir.join("NPCBehaviorMod").join("config.txt");
     if npc_path.exists() && npc_path.is_file() {
-        let metadata = fs::metadata(&npc_path)
-            .map_err(|e| format!("Failed to read metadata: {}", e))?;
+        let metadata =
+            fs::metadata(&npc_path).map_err(|e| format!("Failed to read metadata: {}", e))?;
         entries.push(ConfigEntry {
             name: "config.txt".to_string(),
             rel_path: "NPCBehaviorMod/config.txt".to_string(),
@@ -489,8 +489,7 @@ fn read_config(rel_path: &str) -> Result<String, String> {
         return Err(format!("Config file not found: {}", rel_path));
     }
 
-    fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read config file: {}", e))
+    fs::read_to_string(&path).map_err(|e| format!("Failed to read config file: {}", e))
 }
 
 /// Write content to a config file by its relative path.
@@ -507,8 +506,7 @@ fn write_config(rel_path: &str, content: &str) -> Result<(), String> {
         return Err(format!("Config file not found: {}", rel_path));
     }
 
-    fs::write(&path, content)
-        .map_err(|e| format!("Failed to write config file: {}", e))
+    fs::write(&path, content).map_err(|e| format!("Failed to write config file: {}", e))
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

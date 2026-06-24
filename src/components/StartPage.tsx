@@ -15,7 +15,7 @@ const StartPage = () => {
         try {
             await invoke("launch_game", { exeName: GAME_EXE });
         } catch (e) {
-            showPopUp(String(e), 0);
+            showPopUp(String(e));
         } finally {
             setLaunching(false);
         }

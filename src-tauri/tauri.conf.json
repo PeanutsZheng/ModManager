@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Mod Manager",
-        "width": 800,
-        "height": 550,
+        "width": 1000,
+        "height": 750,
         "resizable": false,
         "maximizable": false,
         "minimizable": true,

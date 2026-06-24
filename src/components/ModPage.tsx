@@ -77,11 +77,16 @@ const ModPage = ({ title, defaultPath, onSubDirChange }: ModPageProps) => {
 		}
 	};
 
-	// Notify parent of sub-directory change
+	// Notify parent of sub-directory change (and clear on unmount)
 	useEffect(() => {
 		if (onSubDirChange) {
 			onSubDirChange(subDirs.length > 0 ? subDirs[subDirs.length - 1] : "");
 		}
+		return () => {
+			if (onSubDirChange) {
+				onSubDirChange("");
+			}
+		};
 	}, [subDirs]);
 
 	useEffect(() => {
@@ -94,7 +99,6 @@ const ModPage = ({ title, defaultPath, onSubDirChange }: ModPageProps) => {
 		const newSubDirs = [...subDirs, folderName];
 		setSubDirs(newSubDirs);
 		const newPath = `${baseDir}/${newSubDirs.join("/")}`;
-		savePath(title, newPath);
 		scan(newPath);
 	};
 
@@ -105,7 +109,6 @@ const ModPage = ({ title, defaultPath, onSubDirChange }: ModPageProps) => {
 		const newPath = newSubDirs.length > 0
 			? `${baseDir}/${newSubDirs.join("/")}`
 			: baseDir;
-		savePath(title, newPath);
 		scan(newPath);
 	};
 
