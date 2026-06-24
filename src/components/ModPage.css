@@ -1,0 +1,343 @@
+/* ===== ModPage ===== */
+
+.ModPageContent {
+    position: relative;
+    z-index: 1;
+}
+
+.ModPageHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.ModPageHeader h2 {
+    margin: 0;
+}
+
+.ModPageTitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    cursor: default;
+}
+
+.NavigateUpButton {
+    padding: 6px 16px;
+    border: 1px solid var(--border-clr);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: var(--sidebar-bg);
+    color: var(--clr-text);
+    transition: background-color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.NavigateUpButton:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-clr);
+}
+
+.ModPageContent h2 {
+    margin: 0;
+}
+
+.ScanBar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.ScanInput {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border-clr);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--clr-text);
+    background-color: var(--sidebar-bg);
+    outline: none;
+    transition: border-color var(--transition-standard), background-color var(--transition-standard), color var(--transition-standard);
+}
+
+.ScanInput:focus {
+    border-color: var(--accent-clr);
+}
+
+.ScanInput.editable {
+    background-color: var(--bg-clr);
+    cursor: text;
+}
+
+.ScanInput:not(.editable) {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.ChangeButton {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: var(--accent-clr);
+    color: white;
+    transition: opacity var(--transition-standard);
+}
+
+.ChangeButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ChangeButton:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.ChangeButton.confirm {
+    background-color: #2ecc71;
+}
+
+.ChangeButton.cancel {
+    background-color: #95a5a6;
+}
+
+.ScanLoading {
+    color: var(--clr-text);
+    opacity: 0.6;
+    margin: 0 0 16px 0;
+}
+
+.ScanError {
+    color: #e74c3c;
+    margin: 0 0 16px 0;
+}
+
+.ScanEmpty {
+    color: var(--clr-text);
+    opacity: 0.6;
+}
+
+.ModLists {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* ===== ModTable ===== */
+
+.ModTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.ModTable th,
+.ModTable td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-clr);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ModTable th:nth-child(1),
+.ModTable td:nth-child(1) {
+    width: 50%;
+}
+
+.ModTable th:nth-child(2),
+.ModTable td:nth-child(2) {
+    width: 15%;
+}
+
+.ModTable th:nth-child(3),
+.ModTable td:nth-child(3) {
+    width: 15%;
+}
+
+.ModTable th:nth-child(4),
+.ModTable td:nth-child(4) {
+    width: 20%;
+    white-space: normal;
+    overflow: visible;
+}
+
+.ModTable th {
+    font-weight: 600;
+    opacity: 0.7;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ModTable tbody tr:hover {
+    background-color: var(--hover-bg);
+}
+
+.ModTable td {
+    transition: background-color var(--transition-standard);
+}
+
+.EntryIcon {
+    margin-right: 8px;
+}
+
+/* Deleted row */
+
+.deleted-row {
+    opacity: 0.6;
+}
+
+.deleted-row:hover {
+    opacity: 0.8;
+}
+
+/* Folder row (clickable) */
+
+.folder-row {
+    cursor: pointer;
+}
+
+.folder-row:hover {
+    background-color: var(--hover-bg);
+}
+
+.FolderName {
+    color: var(--accent-clr);
+    font-weight: 500;
+}
+
+.DeletedName {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.DeletedName s {
+    color: var(--clr-text);
+    opacity: 0.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+/* Action buttons */
+
+.ActionsCell {
+    text-align: center;
+    white-space: normal;
+    overflow: visible;
+    vertical-align: middle;
+}
+
+.ActionButtonGroup {
+    display: inline-block;
+    position: relative;
+    width: 72px;
+    height: 26px;
+    vertical-align: middle;
+}
+
+.ActionButtonGroup .ActionButton {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 34px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    color: white;
+    text-align: center;
+    line-height: 26px;
+    z-index: 1;
+    overflow: hidden;
+    transition: width 0.2s ease, z-index 0s 0.2s;
+}
+
+.ActionButtonGroup .ActionButton.restore {
+    left: 0;
+}
+
+.ActionButtonGroup .ActionButton.purge {
+    right: 0;
+}
+
+.ActionShort,
+.ActionFull {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: opacity 0.15s ease;
+}
+
+.ActionShort {
+    opacity: 1;
+}
+
+.ActionFull {
+    opacity: 0;
+}
+
+.ActionButtonGroup .ActionButton:hover {
+    width: 72px;
+    z-index: 2;
+    transition: width 0.2s ease, z-index 0s 0s;
+}
+
+.ActionButtonGroup .ActionButton:hover .ActionShort {
+    opacity: 0;
+}
+
+.ActionButtonGroup .ActionButton:hover .ActionFull {
+    opacity: 1;
+}
+
+.ActionButton.delete {
+    width: 72px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    color: white;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 26px;
+    transition: opacity var(--transition-standard);
+}
+
+.ActionButton.delete:hover {
+    opacity: 0.8;
+}
+
+.ActionButton.delete {
+    background-color: #e74c3c;
+}
+
+.ActionButton.restore {
+    background-color: #2ecc71;
+}
+
+.ActionButton.purge {
+    background-color: #8e44ad;
+}

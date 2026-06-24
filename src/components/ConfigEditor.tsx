@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import EditorTitleBar from "./EditorTitleBar.tsx";
+import "./ConfigEditor.css";
 
 
 const ConfigEditor = () => {

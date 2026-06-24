@@ -1,0 +1,48 @@
+/* ===== StartPage ===== */
+
+.StartPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.StartPageButtonGroup {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.StartPageButtonGroup>button {
+    width: 200px;
+    margin-top: 20px;
+    font-family: inherit;
+    font-size: 16px;
+    border: 1px solid var(--clr-text);
+    border-radius: 7px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--clr-text);
+    transition: var(--transition-standard);
+}
+
+.StartPageButtonGroup>button:hover {
+    background-color: var(--clr-text);
+    color: var(--bg-clr);
+}
+
+.StartPageButtonGroup>button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.StartError {
+    color: #e74c3c;
+    margin-top: 16px;
+    font-size: 14px;
+}

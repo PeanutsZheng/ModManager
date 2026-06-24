@@ -1,0 +1,27 @@
+/* ===== ConfigPage ===== */
+
+.ConfigPath {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.ActionButton.edit {
+    width: 72px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    color: white;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 26px;
+    background-color: #3498db;
+    transition: opacity var(--transition-standard);
+}
+
+.ActionButton.edit:hover {
+    opacity: 0.8;
+}

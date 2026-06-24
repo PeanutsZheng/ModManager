@@ -1,0 +1,89 @@
+/* ===== ConfigEditor ===== */
+
+.ConfigEditorStandalone {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    color: var(--clr-text);
+}
+
+.ConfigEditorHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-clr);
+}
+
+.ConfigEditorHeader h3 {
+    margin: 0;
+}
+
+.ConfigEditorPath {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.ConfigEditorTextarea {
+    flex: 1;
+    padding: 16px 20px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    background-color: var(--main-bg);
+    color: var(--clr-text);
+    tab-size: 4;
+}
+
+.ConfigEditorLoading,
+.ConfigEditorError {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    font-size: 14px;
+}
+
+.ConfigEditorFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-clr);
+}
+
+.ConfigEditorBtn {
+    padding: 6px 20px;
+    border: 1px solid var(--border-clr);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--clr-text);
+    background-color: var(--sidebar-bg);
+    transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.ConfigEditorBtn:hover {
+    background-color: var(--hover-bg);
+}
+
+.ConfigEditorBtn.save {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.ConfigEditorBtn.save:hover {
+    opacity: 0.85;
+}
+
+.ConfigEditorBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

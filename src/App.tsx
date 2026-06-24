@@ -4,17 +4,31 @@ import "./App.css";
 import logo from "/manaka-logo.png";
 import StartPage from "./components/StartPage.tsx";
 import ModPage from "./components/ModPage.tsx";
-import DownloadPage from "./components/DownloadPage.tsx";
 import ConfigPage from "./components/ConfigPage.tsx";
 import ConfigEditor from "./components/ConfigEditor.tsx";
 import ThemeToggle from "./components/ThemeToggle.tsx";
 import TitleBar from "./components/TitleBar.tsx";
+import RightPanel from "./components/RightPanel.tsx";
 
 type SubDirUpdater = (key: string) => (sub: string) => void;
+type RightPanelControl = {
+    open: boolean;
+    onToggle: () => void;
+    openPanel: () => void;
+    closePanel: () => void;
+};
 
 const Layout = () => {
 	const [collapsed, setCollapsed] = useState(false);
 	const [subDirMap, setSubDirMap] = useState<Record<string, string>>({});
+	const [rightPanelOpen, setRightPanelOpen] = useState(false);
+
+	const rightPanelControl: RightPanelControl = {
+		open: rightPanelOpen,
+		onToggle: () => setRightPanelOpen(prev => !prev),
+		openPanel: () => setRightPanelOpen(true),
+		closePanel: () => setRightPanelOpen(false),
+	};
 
 	const updateSubDir = (key: string) => (sub: string) => {
 		setSubDirMap(prev => ({ ...prev, [key]: sub }));
@@ -31,8 +45,13 @@ const Layout = () => {
 
 	return (
 		<div className="AppContainer">
-			<TitleBar />
-			<div className="AppBody">
+			<TitleBar
+				leftSidebarCollapsed={collapsed}
+				onLeftSidebarToggle={() => setCollapsed(!collapsed)}
+				rightPanelOpen={rightPanelOpen}
+				onRightPanelToggle={rightPanelControl.onToggle}
+			/>
+			<div className={`AppBody ${rightPanelOpen ? "right-panel-open" : ""}`}>
 				<aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
 					<div className="SidebarInner">
 						<div className="SidebarHeader">
@@ -56,9 +75,6 @@ const Layout = () => {
 							<NavLink to="/v2" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
 								{truncateLabel("CM V2", subDirMap["v2"] || "")}
 							</NavLink>
-							<NavLink to="/download" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
-								Download
-							</NavLink>
 							<NavLink to="/config" className={({ isActive }) => `SidebarButton ${isActive ? 'active' : ''}`}>
 								Config
 							</NavLink>
@@ -66,17 +82,15 @@ const Layout = () => {
 					</div>
 				</aside>
 
-				<button
-					className={`SidebarToggle ${collapsed ? "collapsed" : ""}`}
-					onClick={() => setCollapsed(!collapsed)}
-					title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-				>
-					<span className="ToggleIcon">{collapsed ? "\u203A" : "\u2039"}</span>
-				</button>
-
 				<main className="MainContent">
-					<Outlet context={{ updateSubDir }} />
+					<Outlet context={{ updateSubDir, rightPanelControl }} />
 				</main>
+
+				<RightPanel open={rightPanelOpen} onToggle={rightPanelControl.onToggle} title="Test Panel">
+					<p style={{ color: "var(--clr-text)", opacity: 0.7 }}>
+						This is a test panel content area.
+					</p>
+				</RightPanel>
 			</div>
 		</div>
 	);
@@ -104,7 +118,6 @@ function App() {
 					<Route path="plugins" element={<PluginsPage />} />
 					<Route path="v1" element={<V1Page />} />
 					<Route path="v2" element={<V2Page />} />
-					<Route path="download" element={<DownloadPage />} />
 					<Route path="config" element={<ConfigPage />} />
 				</Route>
 				{/* Editor window: no sidebar, standalone layout */}

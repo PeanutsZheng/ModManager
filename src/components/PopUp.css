@@ -1,0 +1,75 @@
+/* ===== PopUp ===== */
+
+.popup-container {
+    position: fixed;
+    top: 40px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    transition: right 0.3s ease;
+}
+
+.popup-message-item {
+    font-family: inherit;
+    background-color: rgba(220, 224, 242, 0.85);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    color: #4c4f69;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 300px;
+    width: auto;
+    text-align: center;
+    position: relative;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+html.dark .popup-message-item {
+    background-color: rgba(239, 241, 245, 0.12);
+    color: #c6d0f5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.popup-message-item.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.popup-close {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #8c8fa1;
+    line-height: 1;
+}
+
+html.dark .popup-close {
+    color: #7c7f93;
+}
+
+.popup-close:hover {
+    color: #4c4f69;
+}
+
+html.dark .popup-close:hover {
+    color: #c6d0f5;
+}
+
+.popup-message-text {
+    margin: 0;
+    font-size: 14px;
+    padding-right: 15px;
+}
+
+/* Shift popups left when right panel is open */
+.AppBody.right-panel-open .popup-container {
+    right: 320px;
+}

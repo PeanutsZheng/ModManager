@@ -1,5 +1,6 @@
 import { useRef, useLayoutEffect, useState } from "react";
 import { getModDescription, type ModDescription } from "../utils/utils";
+import "./ModTooltip.css";
 
 interface ModEntry {
     name: string;

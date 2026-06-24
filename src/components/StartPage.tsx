@@ -2,6 +2,7 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import logo from "/manaka-logo.png";
 import { PopUp, usePopUp } from "./PopUp";
+import "./StartPage.css";
 
 // Relative to the exe's directory
 const GAME_EXE = "SecretFlasherManaka.exe";

@@ -2,6 +2,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import ModTooltip from "./ModTooltip.tsx";
 import { loadDescriptions, type ModDescription } from "../utils/utils.tsx";
+import "./ModPage.css";
 
 interface ModEntry {
 	name: string;

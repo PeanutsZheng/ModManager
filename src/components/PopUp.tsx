@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import "./PopUp.css";
 
 interface PopupMessage {
     id: number;

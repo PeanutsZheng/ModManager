@@ -1,0 +1,55 @@
+/* ===== ModTooltip ===== */
+
+.ModTooltip {
+    position: fixed;
+    z-index: 100;
+    pointer-events: none;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border-clr);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 280px;
+    font-size: 13px;
+    color: var(--clr-text);
+    transition: left 0.05s, top 0.05s;
+}
+
+html.dark .ModTooltip {
+    background: rgba(41, 44, 60, 0.6);
+}
+
+.ModTooltipName {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    word-break: break-all;
+    white-space: normal;
+}
+
+.ModTooltipStatus {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    opacity: 0.75;
+}
+
+.ModTooltipDeleted {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.ModTooltipDesc {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-clr);
+    font-size: 12px;
+    line-height: 1.5;
+    opacity: 0.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

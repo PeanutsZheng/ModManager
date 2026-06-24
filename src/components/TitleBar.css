@@ -1,0 +1,83 @@
+/* ===== TitleBar ===== */
+
+.TitleBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    padding: 0 8px;
+    background-color: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border-clr);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.TitleBarLeft {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.TitleBarTitle {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.7;
+    padding-left: 4px;
+}
+
+.TitleBarButtons {
+    display: flex;
+    gap: 2px;
+}
+
+.TitleBarBtn {
+    width: 32px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--clr-text);
+    font-size: 12px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    font-family: inherit;
+    transition: background-color 0.15s;
+}
+
+.TitleBarBtn:hover {
+    background-color: var(--hover-bg);
+}
+
+.TitleBarBtn.close:hover {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+/* Sidebar / Panel toggle buttons in TitleBar */
+
+.TitleBarBtn.sidebar-toggle-btn,
+.TitleBarBtn.panel-toggle-btn {
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+}
+
+.TitleBarBtn.sidebar-toggle-btn:hover,
+.TitleBarBtn.panel-toggle-btn:hover {
+    opacity: 1;
+}
+
+.TitleBarBtn.panel-toggle-btn.active {
+    opacity: 1;
+    color: var(--accent-clr);
+}
+
+.ToggleIcon {
+    line-height: 1;
+    font-size: 20px;
+}
