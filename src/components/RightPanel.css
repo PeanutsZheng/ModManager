@@ -11,12 +11,12 @@
 }
 
 .right-panel.open {
-    width: 300px;
+    width: 360px;
 }
 
 .right-panel-inner {
-    width: 300px;
-    min-width: 300px;
+    width: 360px;
+    min-width: 360px;
     border-radius: 5px 0 0 5px;
     border-left: 1px solid var(--border-clr);
     display: flex;

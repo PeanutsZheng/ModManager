@@ -1,6 +1,8 @@
-﻿import { HashRouter, Routes, Route, NavLink, Outlet, useOutletContext } from "react-router-dom";
-import { useState } from "react";
+﻿import { HashRouter, Routes, Route, NavLink, Outlet, useOutletContext, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
+import "./components/Sidebar.css";
 import logo from "/manaka-logo.png";
 import StartPage from "./components/StartPage.tsx";
 import ModPage from "./components/ModPage.tsx";
@@ -9,19 +11,46 @@ import ConfigEditor from "./components/ConfigEditor.tsx";
 import ThemeToggle from "./components/ThemeToggle.tsx";
 import TitleBar from "./components/TitleBar.tsx";
 import RightPanel from "./components/RightPanel.tsx";
+import BepInExPanel from "./components/BepInExPanel.tsx";
 
 type SubDirUpdater = (key: string) => (sub: string) => void;
 type RightPanelControl = {
-    open: boolean;
-    onToggle: () => void;
-    openPanel: () => void;
-    closePanel: () => void;
+	open: boolean;
+	onToggle: () => void;
+	openPanel: () => void;
+	closePanel: () => void;
 };
 
 const Layout = () => {
 	const [collapsed, setCollapsed] = useState(false);
 	const [subDirMap, setSubDirMap] = useState<Record<string, string>>({});
 	const [rightPanelOpen, setRightPanelOpen] = useState(false);
+	const [bepinexInstalledVersion, setBepinexInstalledVersion] = useState<string | null>(null);
+	const [bepinexBuilds, setBepinexBuilds] = useState<{ name: string; url: string; version: string; build_number: number }[]>([]);
+	const [bepinexBuildsLoaded, setBepinexBuildsLoaded] = useState(false);
+	const location = useLocation();
+
+	// Auto-detect panel content based on current route
+	const panelContent: "bepinex" | "none" = location.pathname === "/" ? "bepinex" : "none";
+
+	// Fetch installed BepInEx version when panel opens with bepinex content
+	useEffect(() => {
+		if (rightPanelOpen && panelContent === "bepinex") {
+			invoke<string | null>("get_installed_bepinex_version").then(v => {
+				setBepinexInstalledVersion(v);
+			});
+		}
+	}, [rightPanelOpen, panelContent]);
+
+	// Fetch BepInEx builds once when panel first opens
+	useEffect(() => {
+		if (rightPanelOpen && panelContent === "bepinex" && !bepinexBuildsLoaded) {
+			invoke<{ name: string; url: string; version: string; build_number: number }[]>("fetch_bepinex_builds").then(result => {
+				setBepinexBuilds(result);
+				setBepinexBuildsLoaded(true);
+			}).catch(() => { });
+		}
+	}, [rightPanelOpen, panelContent, bepinexBuildsLoaded]);
 
 	const rightPanelControl: RightPanelControl = {
 		open: rightPanelOpen,
@@ -86,10 +115,21 @@ const Layout = () => {
 					<Outlet context={{ updateSubDir, rightPanelControl }} />
 				</main>
 
-				<RightPanel open={rightPanelOpen} onToggle={rightPanelControl.onToggle} title="Test Panel">
-					<p style={{ color: "var(--clr-text)", opacity: 0.7 }}>
-						This is a test panel content area.
-					</p>
+				<RightPanel open={rightPanelOpen} title={panelContent === "bepinex" ? "BepInEx" : "In development"}>
+					{panelContent === "bepinex" && (
+						<BepInExPanel
+							installedVersion={bepinexInstalledVersion}
+							builds={bepinexBuilds}
+							onInstallComplete={() => {
+								invoke<string | null>("get_installed_bepinex_version").then(v => {
+									setBepinexInstalledVersion(v);
+								});
+							}}
+							onRemoveComplete={() => {
+								setBepinexInstalledVersion(null);
+							}}
+						/>
+					)}
 				</RightPanel>
 			</div>
 		</div>

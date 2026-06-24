@@ -13,6 +13,8 @@ Game_Dir
     └─ModsDescription.json          # Mods description
 ```
 
+And there is an other mod manager project build by my friend, see: [ManakaManaer](https://github.com/softsuccubus/ManakaManagerFX)
+
 # Install
 > For developers.
 
@@ -35,8 +37,8 @@ The ModsDescription.json in the source code is just a sample file, you can modif
 
 # Future
 - Add resource download.
-- More mod description.
-- Add the BepInEx frame download and version management.
+- Add clothes mods management.
+- Add package management integration.
 - Maybe more.
 
 # Updata
@@ -44,6 +46,8 @@ The ModsDescription.json in the source code is just a sample file, you can modif
 <details>
 
 06.23: Add dir management and config file edit.
+06.24: Thanks to Useruser9527 for their resource organization efforts. The mod description files are now quite comprehensive.
+06.24: Add the BepInEx frame download and version management.
 
 </details>
 

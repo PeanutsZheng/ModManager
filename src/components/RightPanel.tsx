@@ -1,10 +1,9 @@
+import React from "react";
 import "./RightPanel.css";
 
 interface RightPanelProps {
     /** Whether the panel is open */
     open: boolean;
-    /** Called when the toggle button is clicked */
-    onToggle?: () => void;
     /** Panel title */
     title: string;
     /** Panel content */

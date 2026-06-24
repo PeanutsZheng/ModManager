@@ -71,5 +71,5 @@ html.dark .popup-close:hover {
 
 /* Shift popups left when right panel is open */
 .AppBody.right-panel-open .popup-container {
-    right: 320px;
+    right: 380px;
 }
