@@ -45,8 +45,11 @@ The ModsDescription.json in the source code is just a sample file, you can modif
 <details>
 
 06.23: Add dir management and config file edit.
+
 06.24: Thanks to `Useruser9527` for their resource organization efforts. The mod description files are now quite comprehensive.
+
 06.24: Add the BepInEx frame download and version management.
+
 06.25: Add resource download. Thanks to `达妮娅的猫`'s work, now we can download mods from his [Network Resource Center](https://softsuccubus.github.io/ManakaStaticWeb/).
 
 </details>
