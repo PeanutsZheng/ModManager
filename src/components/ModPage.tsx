@@ -16,6 +16,7 @@ interface ModPageProps {
 	title: string;
 	defaultPath: string;
 	onSubDirChange?: (sub: string) => void;
+	rescanVersion?: number;
 }
 
 const STORAGE_KEY = (title: string) => `modPath:${title}`;
@@ -37,7 +38,7 @@ const savePath = (title: string, path: string) => {
 	}
 };
 
-const ModPage = ({ title, defaultPath, onSubDirChange }: ModPageProps) => {
+const ModPage = ({ title, defaultPath, onSubDirChange, rescanVersion }: ModPageProps) => {
 	const savedPath = loadSavedPath(title, defaultPath);
 
 	// baseDir: the user's chosen root path (can be changed via "Change" button).
@@ -94,6 +95,13 @@ const ModPage = ({ title, defaultPath, onSubDirChange }: ModPageProps) => {
 		loadDescriptions().then(setDescriptions);
 		if (savedPath) scan(savedPath);
 	}, []);
+
+	// Re-scan when a resource download completes (rescanVersion increments)
+	useEffect(() => {
+		if (rescanVersion && rescanVersion > 0) {
+			scan(currentPath);
+		}
+	}, [rescanVersion]);
 
 	// Navigate into a sub-directory
 	const navigateInto = (folderName: string) => {

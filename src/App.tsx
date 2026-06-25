@@ -1,4 +1,4 @@
-﻿import { HashRouter, Routes, Route, NavLink, Outlet, useOutletContext, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, NavLink, Outlet, useOutletContext, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
@@ -12,6 +12,8 @@ import ThemeToggle from "./components/ThemeToggle.tsx";
 import TitleBar from "./components/TitleBar.tsx";
 import RightPanel from "./components/RightPanel.tsx";
 import BepInExPanel from "./components/BepInExPanel.tsx";
+import ResourcePanel from "./components/ResourcePanel.tsx";
+import type { Manifest } from "./components/ResourcePanel.tsx";
 
 type SubDirUpdater = (key: string) => (sub: string) => void;
 type RightPanelControl = {
@@ -21,6 +23,17 @@ type RightPanelControl = {
 	closePanel: () => void;
 };
 
+type RightPanelContent = "bepinex" | "resources" | "none";
+
+// Map route to resource category and local relative path
+type ResourceInfo = { category: string; defaultScanPath: string };
+
+const ROUTE_RESOURCE_MAP: Record<string, ResourceInfo> = {
+	"/plugins": { category: "plugins", defaultScanPath: "./BepInEx/plugins" },
+	"/v1": { category: "CustomMissions", defaultScanPath: "./CustomMissions" },
+	"/v2": { category: "CustomMissions2", defaultScanPath: "./CustomMissions2" },
+};
+
 const Layout = () => {
 	const [collapsed, setCollapsed] = useState(false);
 	const [subDirMap, setSubDirMap] = useState<Record<string, string>>({});
@@ -28,10 +41,53 @@ const Layout = () => {
 	const [bepinexInstalledVersion, setBepinexInstalledVersion] = useState<string | null>(null);
 	const [bepinexBuilds, setBepinexBuilds] = useState<{ name: string; url: string; version: string; build_number: number }[]>([]);
 	const [bepinexBuildsLoaded, setBepinexBuildsLoaded] = useState(false);
+
+	// Rescan counter: incremented when a resource is downloaded, so ModPage can re-scan
+	const [rescanVersion, setRescanVersion] = useState(0);
+	const triggerRescan = () => setRescanVersion(v => v + 1);
+
+	// Manifest state (cached at Layout level)
+	const [manifest, setManifest] = useState<Manifest | null>(null);
+	const [manifestLoading, setManifestLoading] = useState(false);
+	const [manifestError, setManifestError] = useState<string | null>(null);
+	const [manifestLoaded, setManifestLoaded] = useState(false);
+
+	const loadManifest = () => {
+		setManifestLoading(true);
+		setManifestError(null);
+		invoke<Manifest>("fetch_manifest")
+			.then(m => {
+				setManifest(m);
+				setManifestLoaded(true);
+			})
+			.catch(e => {
+				setManifestError(String(e));
+			})
+			.finally(() => {
+				setManifestLoading(false);
+			});
+	};
+
 	const location = useLocation();
 
 	// Auto-detect panel content based on current route
-	const panelContent: "bepinex" | "none" = location.pathname === "/" ? "bepinex" : "none";
+	const resourceInfo = ROUTE_RESOURCE_MAP[location.pathname];
+	const panelContent: RightPanelContent = location.pathname === "/"
+		? "bepinex"
+		: resourceInfo ? "resources" : "none";
+
+	const panelTitle = panelContent === "bepinex"
+		? "BepInEx"
+		: panelContent === "resources" && resourceInfo
+			? "Resources"
+			: "In development";
+
+	// Fetch manifest when panel first opens with resources content
+	useEffect(() => {
+		if (rightPanelOpen && panelContent === "resources" && !manifestLoaded && !manifestLoading) {
+			loadManifest();
+		}
+	}, [rightPanelOpen, panelContent, manifestLoaded, manifestLoading]);
 
 	// Fetch installed BepInEx version when panel opens with bepinex content
 	useEffect(() => {
@@ -112,10 +168,10 @@ const Layout = () => {
 				</aside>
 
 				<main className="MainContent">
-					<Outlet context={{ updateSubDir, rightPanelControl }} />
+					<Outlet context={{ updateSubDir, rightPanelControl, rescanVersion, triggerRescan }} />
 				</main>
 
-				<RightPanel open={rightPanelOpen} title={panelContent === "bepinex" ? "BepInEx" : "In development"}>
+				<RightPanel open={rightPanelOpen} title={panelTitle}>
 					{panelContent === "bepinex" && (
 						<BepInExPanel
 							installedVersion={bepinexInstalledVersion}
@@ -130,6 +186,17 @@ const Layout = () => {
 							}}
 						/>
 					)}
+					{panelContent === "resources" && resourceInfo && (
+						<ResourcePanel
+							category={resourceInfo.category}
+							defaultScanPath={resourceInfo.defaultScanPath}
+							manifest={manifest}
+							manifestLoading={manifestLoading}
+							manifestError={manifestError}
+							onReloadManifest={loadManifest}
+							onRescan={triggerRescan}
+						/>
+					)}
 				</RightPanel>
 			</div>
 		</div>
@@ -137,16 +204,16 @@ const Layout = () => {
 };
 
 const PluginsPage = () => {
-	const { updateSubDir } = useOutletContext<{ updateSubDir: SubDirUpdater }>();
-	return <ModPage title="Plugins" defaultPath="./BepInEx/plugins" onSubDirChange={updateSubDir("plugins")} />;
+	const { updateSubDir, rescanVersion } = useOutletContext<{ updateSubDir: SubDirUpdater; rescanVersion: number }>();
+	return <ModPage title="Plugins" defaultPath="./BepInEx/plugins" onSubDirChange={updateSubDir("plugins")} rescanVersion={rescanVersion} />;
 };
 const V1Page = () => {
-	const { updateSubDir } = useOutletContext<{ updateSubDir: SubDirUpdater }>();
-	return <ModPage title="CM V1" defaultPath="./CustomMissions" onSubDirChange={updateSubDir("v1")} />;
+	const { updateSubDir, rescanVersion } = useOutletContext<{ updateSubDir: SubDirUpdater; rescanVersion: number }>();
+	return <ModPage title="CM V1" defaultPath="./CustomMissions" onSubDirChange={updateSubDir("v1")} rescanVersion={rescanVersion} />;
 };
 const V2Page = () => {
-	const { updateSubDir } = useOutletContext<{ updateSubDir: SubDirUpdater }>();
-	return <ModPage title="CM V2" defaultPath="./CustomMissions2" onSubDirChange={updateSubDir("v2")} />;
+	const { updateSubDir, rescanVersion } = useOutletContext<{ updateSubDir: SubDirUpdater; rescanVersion: number }>();
+	return <ModPage title="CM V2" defaultPath="./CustomMissions2" onSubDirChange={updateSubDir("v2")} rescanVersion={rescanVersion} />;
 };
 
 function App() {

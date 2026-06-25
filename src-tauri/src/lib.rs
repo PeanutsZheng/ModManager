@@ -616,14 +616,16 @@ pub struct BepInExArtifact {
 
 /// Fetch available BepInEx IL2CPP win-x64 builds from the bleeding edge page.
 #[tauri::command]
-fn fetch_bepinex_builds() -> Result<Vec<BepInExArtifact>, String> {
+async fn fetch_bepinex_builds() -> Result<Vec<BepInExArtifact>, String> {
     let url = "https://builds.bepinex.dev/projects/bepinex_be";
-    let body = reqwest::blocking::Client::new()
+    let body = reqwest::Client::new()
         .get(url)
         .timeout(std::time::Duration::from_secs(10))
         .send()
+        .await
         .map_err(|e| format!("Failed to fetch BepInEx builds: {}", e))?
         .text()
+        .await
         .map_err(|e| format!("Failed to read response: {}", e))?;
 
     // Parse the HTML to find IL2CPP win-x64 download links.
@@ -822,6 +824,215 @@ async fn download_bepinex(
     Ok(())
 }
 
+/// A single file entry from the remote manifest.
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct ManifestFile {
+    name: String,
+    path: String,
+    #[serde(rename = "type")]
+    r#type: String,
+    ext: String,
+    size: u64,
+    #[serde(rename = "lastModified")]
+    last_modified: String,
+    #[serde(rename = "sizeFormatted")]
+    size_formatted: String,
+}
+
+/// A category from the remote manifest.
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct ManifestCategory {
+    name: String,
+    count: u64,
+    files: Vec<ManifestFile>,
+}
+
+/// The full manifest structure.
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct Manifest {
+    #[serde(rename = "generatedAt")]
+    generated_at: String,
+    categories: std::collections::HashMap<String, ManifestCategory>,
+    #[serde(rename = "totalCount")]
+    total_count: u64,
+}
+
+/// Fetch the remote manifest.json from the static resource site.
+#[tauri::command]
+async fn fetch_manifest() -> Result<Manifest, String> {
+    let url = "https://softsuccubus.github.io/ManakaStaticWeb/manifest.json";
+    let body = reqwest::Client::new()
+        .get(url)
+        .timeout(std::time::Duration::from_secs(15))
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch manifest: {}", e))?
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read manifest: {}", e))?;
+
+    let manifest: Manifest =
+        serde_json::from_str(&body).map_err(|e| format!("Failed to parse manifest: {}", e))?;
+
+    Ok(manifest)
+}
+
+/// Download a resource file from the remote static site and install it.
+///
+/// - `category`: one of "plugins", "CustomMissions", "CustomMissions2"
+/// - `file_name`: the file name to download (e.g. "MyPlugin.zip")
+/// - `target_path`: where to install — relative path resolved against exe dir (e.g. "./BepInEx/plugins")
+/// - `extract_mode`: "flatten" = download zip, extract contents directly into target_path, delete zip (for plugins zips),
+///                   "direct" = download file and save as-is into target_path (no extraction)
+#[tauri::command]
+async fn download_resource(
+    app: tauri::AppHandle,
+    category: String,
+    file_name: String,
+    target_path: String,
+) -> Result<(), String> {
+    use tauri::Emitter;
+
+    let url = format!(
+        "https://softsuccubus.github.io/ManakaStaticWeb/uploads/{}/{}",
+        category, file_name
+    );
+
+    let exe_dir = std::env::current_exe()
+        .map_err(|e| format!("Failed to get exe path: {}", e))?
+        .parent()
+        .ok_or("Cannot determine exe directory")?
+        .to_path_buf();
+
+    let target_dir = if Path::new(&target_path).is_absolute() {
+        PathBuf::from(&target_path)
+    } else {
+        exe_dir.join(&target_path)
+    };
+
+    // Ensure target directory exists
+    std::fs::create_dir_all(&target_dir)
+        .map_err(|e| format!("Failed to create target dir: {}", e))?;
+
+    // Emit progress: downloading
+    let _ = app.emit("resource-download-progress", serde_json::json!({
+        "stage": "downloading",
+        "percent": 0,
+        "file": file_name
+    }));
+
+    // Download the file
+    let response = reqwest::get(&url)
+        .await
+        .map_err(|e| format!("Failed to download {}: {}", file_name, e))?;
+
+    let total_size = response.content_length().unwrap_or(0);
+    let mut stream = response.bytes_stream();
+    use futures_util::StreamExt;
+
+    let mut downloaded: u64 = 0;
+    let mut chunks: Vec<u8> = Vec::new();
+    let mut last_emitted_percent: u64 = 0;
+
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.map_err(|e| format!("Download error: {}", e))?;
+        chunks.extend_from_slice(&chunk);
+        downloaded += chunk.len() as u64;
+
+        if total_size > 0 {
+            let percent = (downloaded * 100) / total_size;
+            if percent >= last_emitted_percent + 5 || percent == 100 {
+                last_emitted_percent = percent;
+                let _ = app.emit("resource-download-progress", serde_json::json!({
+                    "stage": "downloading",
+                    "percent": percent,
+                    "file": file_name
+                }));
+            }
+        }
+    }
+
+    let _ = app.emit("resource-download-progress", serde_json::json!({
+        "stage": "downloading",
+        "percent": 100,
+        "file": file_name
+    }));
+
+    // Save the downloaded file as-is to target_path (no extraction)
+    let outpath = target_dir.join(&file_name);
+    std::fs::write(&outpath, &chunks)
+        .map_err(|e| format!("Failed to save file {}: {}", file_name, e))?;
+
+    // If it's a zip, extract into a subfolder named after the zip (without extension),
+    // then delete the zip itself.
+    if file_name.to_lowercase().ends_with(".zip") {
+        let _ = app.emit("resource-download-progress", serde_json::json!({
+            "stage": "extracting",
+            "percent": 0,
+            "file": file_name
+        }));
+
+        let zip_stem = file_name
+            .strip_suffix(".zip")
+            .or_else(|| file_name.strip_suffix(".ZIP"))
+            .unwrap_or(&file_name)
+            .to_string();
+
+        let extract_dir = target_dir.join(&zip_stem);
+        std::fs::create_dir_all(&extract_dir)
+            .map_err(|e| format!("Failed to create dir {}: {}", zip_stem, e))?;
+
+        let reader = std::io::Cursor::new(&chunks);
+        let mut archive = zip::ZipArchive::new(reader)
+            .map_err(|e| format!("Failed to open zip {}: {}", file_name, e))?;
+
+        let total_files = archive.len();
+
+        for i in 0..total_files {
+            let mut file = archive.by_index(i).map_err(|e| format!("Zip read error: {}", e))?;
+            let outpath = match file.enclosed_name() {
+                Some(path) => extract_dir.join(path),
+                None => continue,
+            };
+
+            if file.is_dir() {
+                std::fs::create_dir_all(&outpath)
+                    .map_err(|e| format!("Failed to create dir: {}", e))?;
+            } else {
+                if let Some(p) = outpath.parent() {
+                    if !p.exists() {
+                        std::fs::create_dir_all(p)
+                            .map_err(|e| format!("Failed to create dir: {}", e))?;
+                    }
+                }
+                let mut outfile = std::fs::File::create(&outpath)
+                    .map_err(|e| format!("Failed to create file: {}", e))?;
+                std::io::copy(&mut file, &mut outfile)
+                    .map_err(|e| format!("Failed to write file: {}", e))?;
+            }
+
+            let percent = ((i as u64 + 1) * 100) / total_files as u64;
+            let _ = app.emit("resource-download-progress", serde_json::json!({
+                "stage": "extracting",
+                "percent": percent,
+                "file": file_name
+            }));
+        }
+
+        // Delete the zip file after extraction
+        std::fs::remove_file(&target_dir.join(&file_name))
+            .map_err(|e| format!("Failed to delete zip {}: {}", file_name, e))?;
+    }
+
+    let _ = app.emit("resource-download-progress", serde_json::json!({
+        "stage": "done",
+        "percent": 100,
+        "file": file_name
+    }));
+
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let state = Mutex::new(AppState::new());
@@ -846,7 +1057,10 @@ pub fn run() {
             fetch_bepinex_builds,
             get_installed_bepinex_version,
             download_bepinex,
-            remove_bepinex
+            remove_bepinex,
+            fetch_manifest,
+            download_resource
+
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
