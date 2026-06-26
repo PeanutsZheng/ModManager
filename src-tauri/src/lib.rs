@@ -6,12 +6,8 @@ use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
-pub struct ModDescription {
-    pub description: String,
-    #[serde(rename = "In")]
-    pub r#in: String,
-}
+/// Category-keyed mod descriptions: { "plugins": { "ModA": "desc..." }, ... }
+pub type ModDescriptions = std::collections::HashMap<String, std::collections::HashMap<String, String>>;
 
 const TRASH_DIR_NAME: &str = ".trans";
 
@@ -381,7 +377,7 @@ fn kill_game(state: tauri::State<'_, Mutex<AppState>>) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn load_descriptions() -> Result<HashMap<String, ModDescription>, String> {
+fn load_descriptions() -> Result<ModDescriptions, String> {
     let exe_dir = std::env::current_exe()
         .map_err(|e| format!("Failed to get exe path: {}", e))?
         .parent()
@@ -403,7 +399,7 @@ fn load_descriptions() -> Result<HashMap<String, ModDescription>, String> {
     let content = fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read ModsDescription.json: {}", e))?;
 
-    let map: HashMap<String, ModDescription> =
+    let map: ModDescriptions =
         serde_json::from_str(&content).map_err(|e| format!("Invalid JSON: {}", e))?;
 
     Ok(map)
@@ -660,8 +656,15 @@ async fn fetch_bepinex_builds() -> Result<Vec<BepInExArtifact>, String> {
             .map(|c| c[1].to_string())
             .unwrap_or_else(|| "unknown".to_string());
 
-        // Strip commit hash after '+' (e.g. "6.0.0-be.783+c58c42d" -> "6.0.0-be.783")
-        let version = version.split('+').next().unwrap_or(&version).to_string();
+        // Strip commit hash after '+' or '%2B' (URL-encoded '+')
+        let version = version
+            .split('+')
+            .next()
+            .unwrap_or(&version)
+            .split("%2B")
+            .next()
+            .unwrap_or(&version)
+            .to_string();
 
         let build_number: u64 = build_re
             .captures(path)
@@ -882,8 +885,8 @@ async fn fetch_manifest() -> Result<Manifest, String> {
 /// - `category`: one of "plugins", "CustomMissions", "CustomMissions2"
 /// - `file_name`: the file name to download (e.g. "MyPlugin.zip")
 /// - `target_path`: where to install — relative path resolved against exe dir (e.g. "./BepInEx/plugins")
-/// - `extract_mode`: "flatten" = download zip, extract contents directly into target_path, delete zip (for plugins zips),
-///                   "direct" = download file and save as-is into target_path (no extraction)
+/// - `extract_mode`: plugins zips are extracted flat into target_path with .cfg redirected to BepInEx/config/;
+///                   non-plugins zips are extracted into a subfolder named after the zip, with auto prefix-stripping
 #[tauri::command]
 async fn download_resource(
     app: tauri::AppHandle,
@@ -963,8 +966,7 @@ async fn download_resource(
     std::fs::write(&outpath, &chunks)
         .map_err(|e| format!("Failed to save file {}: {}", file_name, e))?;
 
-    // If it's a zip, extract into a subfolder named after the zip (without extension),
-    // then delete the zip itself.
+    // If it's a zip, extract based on category rules
     if file_name.to_lowercase().ends_with(".zip") {
         let _ = app.emit("resource-download-progress", serde_json::json!({
             "stage": "extracting",
@@ -972,16 +974,56 @@ async fn download_resource(
             "file": file_name
         }));
 
-        let zip_stem = file_name
-            .strip_suffix(".zip")
-            .or_else(|| file_name.strip_suffix(".ZIP"))
-            .unwrap_or(&file_name)
-            .to_string();
+        let is_plugins = category == "plugins";
 
-        let extract_dir = target_dir.join(&zip_stem);
+        // For plugins: extract directly into target_dir (BepInEx/plugins/), no subfolder
+        // For others: extract into a subfolder named after the zip stem
+        let extract_dir = if is_plugins {
+            target_dir.clone()
+        } else {
+            let zip_stem = file_name
+                .strip_suffix(".zip")
+                .or_else(|| file_name.strip_suffix(".ZIP"))
+                .unwrap_or(&file_name)
+                .to_string();
+            target_dir.join(&zip_stem)
+        };
         std::fs::create_dir_all(&extract_dir)
-            .map_err(|e| format!("Failed to create dir {}: {}", zip_stem, e))?;
+            .map_err(|e| format!("Failed to create dir: {}", e))?;
 
+        // Config dir for plugins (redirect .cfg files)
+        let config_dir = if is_plugins {
+            exe_dir.join("BepInEx").join("config")
+        } else {
+            PathBuf::new()
+        };
+
+        // First pass: detect if zip has a single root directory (only for non-plugins)
+        let strip_prefix = if !is_plugins {
+            let reader = std::io::Cursor::new(&chunks);
+            let mut archive = zip::ZipArchive::new(reader)
+                .map_err(|e| format!("Failed to open zip {}: {}", file_name, e))?;
+
+            let mut root_dirs = std::collections::HashSet::new();
+            for i in 0..archive.len() {
+                let file = archive.by_index(i).map_err(|e| format!("Zip read error: {}", e))?;
+                if let Some(path) = file.enclosed_name() {
+                    if let Some(first) = path.components().next() {
+                        root_dirs.insert(first.as_os_str().to_string_lossy().to_string());
+                    }
+                }
+            }
+
+            if root_dirs.len() == 1 {
+                Some(PathBuf::from(root_dirs.into_iter().next().unwrap()))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // Second pass: extract
         let reader = std::io::Cursor::new(&chunks);
         let mut archive = zip::ZipArchive::new(reader)
             .map_err(|e| format!("Failed to open zip {}: {}", file_name, e))?;
@@ -991,7 +1033,34 @@ async fn download_resource(
         for i in 0..total_files {
             let mut file = archive.by_index(i).map_err(|e| format!("Zip read error: {}", e))?;
             let outpath = match file.enclosed_name() {
-                Some(path) => extract_dir.join(path),
+                Some(path) => {
+                    let relative = match &strip_prefix {
+                        Some(prefix) => path.strip_prefix(prefix).unwrap_or(path.as_path()),
+                        None => path.as_path(),
+                    };
+                    if relative.as_os_str().is_empty() {
+                        continue;
+                    }
+
+                    // For plugins: redirect .cfg files to BepInEx/config/
+                    if is_plugins {
+                        let ext = relative
+                            .extension()
+                            .map(|e| e.to_string_lossy().to_lowercase())
+                            .unwrap_or_default();
+                        if ext == "cfg" {
+                            // Use file name only (strip any directory structure)
+                            let cfg_name = relative.file_name().unwrap_or(relative.as_os_str());
+                            std::fs::create_dir_all(&config_dir)
+                                .map_err(|e| format!("Failed to create config dir: {}", e))?;
+                            config_dir.join(cfg_name)
+                        } else {
+                            extract_dir.join(relative)
+                        }
+                    } else {
+                        extract_dir.join(relative)
+                    }
+                }
                 None => continue,
             };
 

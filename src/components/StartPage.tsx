@@ -23,7 +23,7 @@ interface RightPanelControl {
 const StartPage = () => {
     const [launching, setLaunching] = useState(false);
     const { messages, showPopUp, removeMessage } = usePopUp();
-    const { rightPanelControl } = useOutletContext<{ rightPanelControl: RightPanelControl }>();
+    const { rightPanelControl, bepinexDownloading } = useOutletContext<{ rightPanelControl: RightPanelControl; bepinexDownloading: boolean }>();
 
     const handleStart = async () => {
         setLaunching(true);
@@ -95,8 +95,8 @@ const StartPage = () => {
         <div className="StartPage">
             <img src={logo} alt="Manaka Logo" width="200" height="200" />
             <div className="StartPageButtonGroup">
-                <button onClick={handleCheck}>Check</button>
-                <button onClick={handleStart} disabled={launching}>
+                <button onClick={handleCheck} disabled={bepinexDownloading}>Check</button>
+                <button onClick={handleStart} disabled={launching || bepinexDownloading}>
                     {launching ? "Launching..." : "Start"}
                 </button>
             </div>

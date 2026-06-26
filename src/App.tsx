@@ -41,6 +41,7 @@ const Layout = () => {
 	const [bepinexInstalledVersion, setBepinexInstalledVersion] = useState<string | null>(null);
 	const [bepinexBuilds, setBepinexBuilds] = useState<{ name: string; url: string; version: string; build_number: number }[]>([]);
 	const [bepinexBuildsLoaded, setBepinexBuildsLoaded] = useState(false);
+	const [bepinexDownloading, setBepinexDownloading] = useState(false);
 
 	// Rescan counter: incremented when a resource is downloaded, so ModPage can re-scan
 	const [rescanVersion, setRescanVersion] = useState(0);
@@ -168,7 +169,7 @@ const Layout = () => {
 				</aside>
 
 				<main className="MainContent">
-					<Outlet context={{ updateSubDir, rightPanelControl, rescanVersion, triggerRescan }} />
+					<Outlet context={{ updateSubDir, rightPanelControl, rescanVersion, triggerRescan, bepinexDownloading }} />
 				</main>
 
 				<RightPanel open={rightPanelOpen} title={panelTitle}>
@@ -184,6 +185,7 @@ const Layout = () => {
 							onRemoveComplete={() => {
 								setBepinexInstalledVersion(null);
 							}}
+							onDownloadingChange={setBepinexDownloading}
 						/>
 					)}
 					{panelContent === "resources" && resourceInfo && (
@@ -205,15 +207,15 @@ const Layout = () => {
 
 const PluginsPage = () => {
 	const { updateSubDir, rescanVersion } = useOutletContext<{ updateSubDir: SubDirUpdater; rescanVersion: number }>();
-	return <ModPage title="Plugins" defaultPath="./BepInEx/plugins" onSubDirChange={updateSubDir("plugins")} rescanVersion={rescanVersion} />;
+	return <ModPage title="Plugins" defaultPath="./BepInEx/plugins" category="plugins" onSubDirChange={updateSubDir("plugins")} rescanVersion={rescanVersion} />;
 };
 const V1Page = () => {
 	const { updateSubDir, rescanVersion } = useOutletContext<{ updateSubDir: SubDirUpdater; rescanVersion: number }>();
-	return <ModPage title="CM V1" defaultPath="./CustomMissions" onSubDirChange={updateSubDir("v1")} rescanVersion={rescanVersion} />;
+	return <ModPage title="CM V1" defaultPath="./CustomMissions" category="CustomMissions" onSubDirChange={updateSubDir("v1")} rescanVersion={rescanVersion} />;
 };
 const V2Page = () => {
 	const { updateSubDir, rescanVersion } = useOutletContext<{ updateSubDir: SubDirUpdater; rescanVersion: number }>();
-	return <ModPage title="CM V2" defaultPath="./CustomMissions2" onSubDirChange={updateSubDir("v2")} rescanVersion={rescanVersion} />;
+	return <ModPage title="CM V2" defaultPath="./CustomMissions2" category="CustomMissions2" onSubDirChange={updateSubDir("v2")} rescanVersion={rescanVersion} />;
 };
 
 function App() {

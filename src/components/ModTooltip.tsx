@@ -1,5 +1,5 @@
 import { useRef, useLayoutEffect, useState } from "react";
-import { getModDescription, type ModDescription } from "../utils/utils";
+import { getModDescription, type ModDescriptions } from "../utils/utils";
 import "./ModTooltip.css";
 
 interface ModEntry {
@@ -12,12 +12,13 @@ interface ModEntry {
 
 interface ModTooltipProps {
     entry: ModEntry;
-    descriptions: Record<string, ModDescription>;
+    descriptions: ModDescriptions;
+    category?: string;
     x: number;
     y: number;
 }
 
-const ModTooltip = ({ entry, descriptions, x, y }: ModTooltipProps) => {
+const ModTooltip = ({ entry, descriptions, category, x, y }: ModTooltipProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
@@ -47,7 +48,7 @@ const ModTooltip = ({ entry, descriptions, x, y }: ModTooltipProps) => {
         setPos({ left, top });
     }, [x, y]);
 
-    const desc = getModDescription(descriptions, entry.name);
+    const desc = getModDescription(descriptions, entry.name, category);
 
     return (
         <div

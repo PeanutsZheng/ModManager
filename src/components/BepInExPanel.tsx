@@ -20,6 +20,7 @@ interface BepInExPanelProps {
     builds: BepInExArtifact[];
     onInstallComplete?: () => void;
     onRemoveComplete?: () => void;
+    onDownloadingChange?: (downloading: boolean) => void;
 }
 
 // Persistent storage helpers
@@ -37,7 +38,7 @@ function loadInstalledVersion(): string | null {
     return localStorage.getItem(STORAGE_KEY);
 }
 
-const BepInExPanel = ({ installedVersion, builds, onInstallComplete, onRemoveComplete }: BepInExPanelProps) => {
+const BepInExPanel = ({ installedVersion, builds, onInstallComplete, onRemoveComplete, onDownloadingChange }: BepInExPanelProps) => {
     const [downloading, setDownloading] = useState(false);
     const [downloadingUrl, setDownloadingUrl] = useState<string | null>(null);
     const [removing, setRemoving] = useState(false);
@@ -55,6 +56,7 @@ const BepInExPanel = ({ installedVersion, builds, onInstallComplete, onRemoveCom
                 setDownloading(false);
                 setDownloadingUrl(null);
                 setProgress(null);
+                if (onDownloadingChange) onDownloadingChange(false);
                 const installedBuild = builds.find(b => b.url === downloadingUrl);
                 if (installedBuild) {
                     saveInstalledVersion(installedBuild.version);
@@ -90,12 +92,14 @@ const BepInExPanel = ({ installedVersion, builds, onInstallComplete, onRemoveCom
         setDownloadingUrl(url);
         setProgress({ stage: "downloading", percent: 0 });
         setError(null);
+        if (onDownloadingChange) onDownloadingChange(true);
         try {
             await invoke("download_bepinex", { url });
         } catch (e) {
             setDownloading(false);
             setDownloadingUrl(null);
             setProgress(null);
+            if (onDownloadingChange) onDownloadingChange(false);
             setError(`Installation failed: ${String(e)}`);
         }
     };

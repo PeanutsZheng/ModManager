@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { loadDescriptions, type ModDescription } from "../utils/utils";
+import { type ModDescriptions } from "../utils/utils";
 import ModTooltip from "./ModTooltip";
 import "./ResourcePanel.css";
 
@@ -81,7 +81,7 @@ const ResourcePanel = ({
     } | null>(null);
 
     // Descriptions for tooltip
-    const [descriptions, setDescriptions] = useState<Record<string, ModDescription>>({});
+    const [descriptions, setDescriptions] = useState<ModDescriptions>({});
 
     // Always scan the default path (not sub-directory paths) — one scan for comparison,
     // no re-scan when user navigates into sub-directories.
@@ -104,7 +104,7 @@ const ResourcePanel = ({
 
     useEffect(() => {
         loadLocalFiles();
-        loadDescriptions().then(setDescriptions);
+        invoke<ModDescriptions>("load_descriptions").then(setDescriptions);
     }, [loadLocalFiles]);
 
     // Listen for download progress events
@@ -289,6 +289,7 @@ const ResourcePanel = ({
                 <ModTooltip
                     entry={{ name: tooltip.name, is_dir: false, size: 0, deleted: false, deleted_at: null }}
                     descriptions={descriptions}
+                    category={category}
                     x={tooltip.x}
                     y={tooltip.y}
                 />

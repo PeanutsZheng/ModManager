@@ -1,10 +1,6 @@
 {
-  "SFM_custom_mission_v2": {
-    "description": "自定义任务插件 V2 版本, 其中的SFM_custom_mission_v2为附属文件夹, 修改其中的config文件可以修改手机的颜色",
-    "In": "plugins"
-  },
-  "SFM_custom_mission_v2.dll": {
-    "description": "自定义任务插件 V2 版本",
-    "In": "plugins"
-  }
+    "plugins": {
+        "SFM_custom_mission_v2": "自定义任务插件 V2 版本, 该插件必须安装. 下载后的 SFM_custom_mission_v2 为附属文件夹, 存放手机拍照的图片以及 v2 插件的存档文件. 修改其中的 config 文件可以修改手机的颜色",
+        "SFM_MapLoader": "存放自定义地图的文件夹，其中包含原作者的使用说明"
+    }
 }

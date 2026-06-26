@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import ModTooltip from "./ModTooltip.tsx";
-import { loadDescriptions, type ModDescription } from "../utils/utils.tsx";
+import { loadDescriptions, type ModDescriptions } from "../utils/utils.tsx";
 import "./ModPage.css";
 
 interface ModEntry {
@@ -15,6 +15,7 @@ interface ModEntry {
 interface ModPageProps {
 	title: string;
 	defaultPath: string;
+	category?: string;
 	onSubDirChange?: (sub: string) => void;
 	rescanVersion?: number;
 }
@@ -38,7 +39,7 @@ const savePath = (title: string, path: string) => {
 	}
 };
 
-const ModPage = ({ title, defaultPath, onSubDirChange, rescanVersion }: ModPageProps) => {
+const ModPage = ({ title, defaultPath, category, onSubDirChange, rescanVersion }: ModPageProps) => {
 	const savedPath = loadSavedPath(title, defaultPath);
 
 	// baseDir: the user's chosen root path (can be changed via "Change" button).
@@ -50,7 +51,7 @@ const ModPage = ({ title, defaultPath, onSubDirChange, rescanVersion }: ModPageP
 	const [entries, setEntries] = useState<ModEntry[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [descriptions, setDescriptions] = useState<Record<string, ModDescription>>({});
+	const [descriptions, setDescriptions] = useState<ModDescriptions>({});
 
 	// Tooltip state
 	const [tooltip, setTooltip] = useState<{
@@ -319,6 +320,7 @@ const ModPage = ({ title, defaultPath, onSubDirChange, rescanVersion }: ModPageP
 				<ModTooltip
 					entry={tooltip.entry}
 					descriptions={descriptions}
+					category={category}
 					x={tooltip.x}
 					y={tooltip.y}
 				/>
