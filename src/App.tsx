@@ -79,7 +79,7 @@ const Layout = () => {
 
 				<main className="MainContent">
 					<div className={`MainContentPage ${isDownloadPage ? "" : "hidden-page"}`}>
-						<DownloadPage />
+						<DownloadPage visible={isDownloadPage} />
 					</div>
 					{!isDownloadPage && (
 						<Outlet context={{ updateSubDir, rescanVersion, triggerRescan }} />

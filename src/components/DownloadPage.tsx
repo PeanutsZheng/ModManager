@@ -26,7 +26,7 @@ const TABS: TabDef[] = [
 
 /* ===== Component ===== */
 
-const DownloadPage = () => {
+const DownloadPage = ({ visible }: { visible: boolean }) => {
     const [activeTab, setActiveTab] = useState<TabKey>("bepinex");
     const currentTab = TABS.find(t => t.key === activeTab)!;
 
@@ -67,9 +67,9 @@ const DownloadPage = () => {
         }
     }, [activeTab]);
 
-    /* --- Load manifest & local files when resource tab is active --- */
+    /* --- Load manifest & local files when resource tab is active or page becomes visible --- */
     useEffect(() => {
-        if (activeTab === "bepinex") return;
+        if (activeTab === "bepinex" || !visible) return;
         const tab = TABS.find(t => t.key === activeTab)!;
 
         // Load manifest if not yet loaded
@@ -85,8 +85,8 @@ const DownloadPage = () => {
         // Load descriptions
         invoke<ModDescriptions>("load_descriptions").then(setDescriptions);
 
-        // Load local files for this category if not yet loaded
-        if (!localFiles[tab.category] && !localFilesLoading) {
+        // Load local files for this category (always rescan to reflect deletions in ModPage)
+        if (!localFilesLoading) {
             setLocalFilesLoading(true);
             invoke<ModEntry[]>("scan_mods", { path: tab.defaultScanPath })
                 .then(entries => {
@@ -98,7 +98,7 @@ const DownloadPage = () => {
                 })
                 .finally(() => setLocalFilesLoading(false));
         }
-    }, [activeTab]);
+    }, [activeTab, visible]);
 
     /* --- BepInEx download progress listener --- */
     useEffect(() => {
