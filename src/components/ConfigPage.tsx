@@ -1,13 +1,9 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import type { ConfigEntry } from "../types";
+import { formatSize } from "../utils/utils";
 import "./ConfigPage.css";
-
-interface ConfigEntry {
-    name: string;
-    rel_path: string;
-    size: number;
-}
 
 const ConfigPage = () => {
     const [entries, setEntries] = useState<ConfigEntry[]>([]);
@@ -36,13 +32,6 @@ const ConfigPage = () => {
         window.addEventListener("focus", onFocus);
         return () => window.removeEventListener("focus", onFocus);
     }, []);
-
-    const formatSize = (bytes: number) => {
-        if (bytes === 0) return "0 B";
-        const units = ["B", "KB", "MB", "GB"];
-        const i = Math.floor(Math.log(bytes) / Math.log(1024));
-        return (bytes / Math.pow(1024, i)).toFixed(1) + " " + units[i];
-    };
 
     const handleEdit = async (entry: ConfigEntry) => {
         // Label must be alphanumeric + -/_

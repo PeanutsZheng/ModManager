@@ -67,9 +67,7 @@ html.dark .popup-close:hover {
     margin: 0;
     font-size: 14px;
     padding-right: 15px;
+    overflow-wrap: break-word;
+    word-break: break-all;
 }
 
-/* Shift popups left when right panel is open */
-.AppBody.right-panel-open .popup-container {
-    right: 380px;
-}

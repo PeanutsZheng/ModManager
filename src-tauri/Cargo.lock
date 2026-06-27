@@ -2160,6 +2160,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "tokio-util",
  "zip",
 ]
 
@@ -4082,6 +4083,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
+ "futures-util",
  "pin-project-lite",
  "tokio",
 ]

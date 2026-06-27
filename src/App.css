@@ -64,11 +64,18 @@ body {
 
 .MainContent {
     flex: 1;
-    max-width: calc(100vw - 200px);
     padding: 40px;
     overflow-y: auto;
     margin: 0 auto;
     position: relative;
+}
+
+.MainContentPage {
+    height: 100%;
+}
+
+.MainContentPage.hidden-page {
+    display: none;
 }
 
 /* MainContent decorative clouds (light mode) */

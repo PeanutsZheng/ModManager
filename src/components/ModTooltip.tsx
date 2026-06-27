@@ -1,14 +1,7 @@
 import { useRef, useLayoutEffect, useState } from "react";
-import { getModDescription, type ModDescriptions } from "../utils/utils";
+import type { ModEntry, ModDescriptions } from "../types";
+import { getModDescription } from "../utils/utils";
 import "./ModTooltip.css";
-
-interface ModEntry {
-    name: string;
-    is_dir: boolean;
-    size: number;
-    deleted: boolean;
-    deleted_at: number | null;
-}
 
 interface ModTooltipProps {
     entry: ModEntry;

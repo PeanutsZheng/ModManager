@@ -1,16 +1,9 @@
 ﻿import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import type { ModEntry, ModDescriptions } from "../types";
+import { loadDescriptions, loadSavedPath, savePath, formatSize } from "../utils/utils";
 import ModTooltip from "./ModTooltip.tsx";
-import { loadDescriptions, type ModDescriptions } from "../utils/utils.tsx";
 import "./ModPage.css";
-
-interface ModEntry {
-	name: string;
-	is_dir: boolean;
-	size: number;
-	deleted: boolean;
-	deleted_at: number | null;
-}
 
 interface ModPageProps {
 	title: string;
@@ -19,25 +12,6 @@ interface ModPageProps {
 	onSubDirChange?: (sub: string) => void;
 	rescanVersion?: number;
 }
-
-const STORAGE_KEY = (title: string) => `modPath:${title}`;
-
-const loadSavedPath = (title: string, defaultPath: string): string => {
-	try {
-		const saved = localStorage.getItem(STORAGE_KEY(title));
-		return saved || defaultPath;
-	} catch {
-		return defaultPath;
-	}
-};
-
-const savePath = (title: string, path: string) => {
-	try {
-		localStorage.setItem(STORAGE_KEY(title), path);
-	} catch {
-		// ignore
-	}
-};
 
 const ModPage = ({ title, defaultPath, category, onSubDirChange, rescanVersion }: ModPageProps) => {
 	const savedPath = loadSavedPath(title, defaultPath);
@@ -184,12 +158,6 @@ const ModPage = ({ title, defaultPath, category, onSubDirChange, rescanVersion }
 		setTooltip(null);
 	}, []);
 
-	const formatSize = (bytes: number) => {
-		if (bytes === 0) return "0 B";
-		const units = ["B", "KB", "MB", "GB"];
-		const i = Math.floor(Math.log(bytes) / Math.log(1024));
-		return (bytes / Math.pow(1024, i)).toFixed(1) + " " + units[i];
-	};
 
 	const truncatePath = (parts: string[], maxLen: number = 28): string => {
 		const full = parts.join(" / ");

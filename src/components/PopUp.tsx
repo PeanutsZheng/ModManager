@@ -1,11 +1,6 @@
 import { useState, useCallback } from "react";
+import type { PopupMessage } from "../types";
 import "./PopUp.css";
-
-interface PopupMessage {
-    id: number;
-    message: string;
-    visible: boolean;
-}
 
 interface PopUpProps {
     messages: PopupMessage[];

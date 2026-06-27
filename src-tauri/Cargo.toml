@@ -26,4 +26,5 @@ reqwest = { version = "0.12", features = ["blocking", "rustls-tls", "stream"], d
 regex = "1"
 zip = "2"
 futures-util = "0.3"
+tokio-util = { version = "0.7", features = ["rt"] }
 

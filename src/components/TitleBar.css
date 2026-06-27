@@ -57,24 +57,8 @@
 
 /* Sidebar / Panel toggle buttons in TitleBar */
 
-.TitleBarBtn.sidebar-toggle-btn,
-.TitleBarBtn.panel-toggle-btn {
-    font-size: 16px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.6;
-}
-
-.TitleBarBtn.sidebar-toggle-btn:hover,
-.TitleBarBtn.panel-toggle-btn:hover {
+.TitleBarBtn.sidebar-toggle-btn:hover {
     opacity: 1;
-}
-
-.TitleBarBtn.panel-toggle-btn.active {
-    opacity: 1;
-    color: var(--accent-clr);
 }
 
 .ToggleIcon {

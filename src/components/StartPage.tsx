@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { useOutletContext } from "react-router-dom";
 import logo from "/manaka-logo.png";
 import { PopUp, usePopUp } from "./PopUp";
 import "./StartPage.css";
@@ -8,22 +7,11 @@ import "./StartPage.css";
 // Relative to the exe's directory
 const GAME_EXE = "SecretFlasherManaka.exe";
 
-interface BepInExCheckResult {
-    missing: string[];
-    ok: boolean;
-}
-
-interface RightPanelControl {
-    open: boolean;
-    onToggle: () => void;
-    openPanel: () => void;
-    closePanel: () => void;
-}
+import type { BepInExCheckResult } from "../types";
 
 const StartPage = () => {
     const [launching, setLaunching] = useState(false);
     const { messages, showPopUp, removeMessage } = usePopUp();
-    const { rightPanelControl, bepinexDownloading } = useOutletContext<{ rightPanelControl: RightPanelControl; bepinexDownloading: boolean }>();
 
     const handleStart = async () => {
         setLaunching(true);
@@ -45,7 +33,6 @@ const StartPage = () => {
 
                 if (installedVersion) {
                     showPopUp(`BepInEx ${installedVersion} detected. Mod runtime environment is ready.`, 3000);
-                    rightPanelControl.openPanel();
                 } else {
                     // Version not detected from log — launch game silently to generate it
                     showPopUp("BepInEx files detected. Launching game to verify version...", 4000);
@@ -65,8 +52,6 @@ const StartPage = () => {
                             showPopUp("BepInEx files found, but version could not be detected. The framework may need a first run.", 5000);
                         }
 
-                        rightPanelControl.openPanel();
-
                         // Kill the game after version check
                         try {
                             await invoke("kill_game");
@@ -75,16 +60,14 @@ const StartPage = () => {
                         }
                     } catch (e) {
                         showPopUp(`Failed to launch game for version check: ${String(e)}`);
-                        rightPanelControl.openPanel();
                     }
                 }
             } else {
                 const missingList = result.missing.join(", ");
                 showPopUp(
-                    `Mod runtime environment abnormal! Missing: ${missingList}. Please use the side panel to install BepInEx.`,
+                    `Mod runtime environment abnormal! Missing: ${missingList}. Please go to Download page to install BepInEx.`,
                     5000
                 );
-                rightPanelControl.openPanel();
             }
         } catch (e) {
             showPopUp(`Check failed: ${String(e)}`);
@@ -95,8 +78,8 @@ const StartPage = () => {
         <div className="StartPage">
             <img src={logo} alt="Manaka Logo" width="200" height="200" />
             <div className="StartPageButtonGroup">
-                <button onClick={handleCheck} disabled={bepinexDownloading}>Check</button>
-                <button onClick={handleStart} disabled={launching || bepinexDownloading}>
+                <button onClick={handleCheck}>Check</button>
+                <button onClick={handleStart} disabled={launching}>
                     {launching ? "Launching..." : "Start"}
                 </button>
             </div>

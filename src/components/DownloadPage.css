@@ -1,0 +1,458 @@
+/* ===== DownloadPage ===== */
+
+.download-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== Tab Bar ===== */
+
+.download-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 0 16px 0;
+    border-bottom: 1px solid var(--border-clr);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.download-tab {
+    padding: 8px 20px;
+    border: 1px solid var(--border-clr);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--clr-text);
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    position: relative;
+    bottom: -1px;
+}
+
+.download-tab:hover {
+    background-color: var(--hover-bg);
+}
+
+.download-tab.active {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-clr);
+    border-bottom: 1px solid var(--hover-bg);
+    color: var(--accent-clr);
+    font-weight: 600;
+}
+
+/* ===== Tab Content ===== */
+
+.download-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* ===== BepInEx Panel ===== */
+
+.bepinex-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bepinex-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bepinex-section-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bepinex-version {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.bepinex-version.installed {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+}
+
+.bepinex-version.not-installed {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+}
+
+.bepinex-installed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bepinex-remove-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: #e74c3c;
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+.bepinex-remove-btn:hover {
+    opacity: 0.85;
+}
+
+.bepinex-remove-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bepinex-loading,
+.bepinex-empty,
+.bepinex-error {
+    font-size: 13px;
+    opacity: 0.6;
+    margin: 0;
+}
+
+.bepinex-error {
+    color: #e74c3c;
+    opacity: 1;
+}
+
+.bepinex-build-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bepinex-build-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: 1px solid var(--border-clr);
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.bepinex-build-item:hover {
+    background-color: var(--hover-bg);
+}
+
+.bepinex-build-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bepinex-build-version {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--clr-text);
+}
+
+.bepinex-download-btn {
+    padding: 4px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: var(--accent-clr);
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+    min-width: 72px;
+    text-align: center;
+}
+
+.bepinex-download-btn:hover:not(:disabled):not(.current) {
+    opacity: 0.85;
+}
+
+.bepinex-download-btn.current {
+    background-color: #2ecc71;
+    cursor: default;
+}
+
+.bepinex-download-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bepinex-hint {
+    font-size: 12px;
+    opacity: 0.5;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* BepInEx Progress bar */
+
+.bepinex-progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bepinex-progress-label {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.bepinex-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bepinex-progress-bar-track {
+    flex: 1;
+    height: 6px;
+    background-color: var(--border-clr);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.bepinex-progress-bar-fill {
+    height: 100%;
+    background-color: var(--accent-clr);
+    border-radius: 3px;
+    transition: width 0.2s ease;
+}
+
+.bepinex-cancel-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: #e74c3c;
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+.bepinex-cancel-btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.bepinex-cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== Resource Panel ===== */
+
+.resource-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.resource-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.resource-section-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--clr-text);
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.resource-stats {
+    display: flex;
+    align-items: baseline;
+}
+
+.resource-stats-count {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-clr);
+}
+
+.resource-stats-total {
+    font-size: 14px;
+    opacity: 0.5;
+}
+
+.resource-loading,
+.resource-all-installed {
+    margin: 0;
+    font-size: 13px;
+    color: var(--clr-text);
+    opacity: 0.6;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.resource-all-installed {
+    color: #2ecc71;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.resource-error {
+    margin: 0;
+    font-size: 12px;
+    color: #e74c3c;
+    padding: 4px 0;
+}
+
+.resource-retry-btn {
+    padding: 6px 16px;
+    border: 1px solid var(--border-clr);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: var(--sidebar-bg);
+    color: var(--clr-text);
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.resource-retry-btn:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-clr);
+}
+
+.resource-file-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.resource-file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: var(--hover-bg);
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.resource-file-item:hover {
+    opacity: 0.9;
+}
+
+.resource-file-item.downloading {
+    background-color: color-mix(in srgb, var(--accent-clr) 8%, var(--hover-bg));
+}
+
+.resource-file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resource-file-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--clr-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resource-file-meta {
+    font-size: 10px;
+    color: var(--clr-text);
+    opacity: 0.5;
+}
+
+/* Resource Progress bar */
+.resource-progress-bar {
+    position: relative;
+    width: 100%;
+    height: 16px;
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--clr-text) 10%, transparent);
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.resource-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 4px;
+    background-color: var(--accent-clr);
+    opacity: 0.6;
+    transition: width 0.2s ease;
+}
+
+.resource-progress-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--clr-text);
+}
+
+/* Resource Download button */
+.resource-download-btn {
+    padding: 4px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    background-color: var(--accent-clr);
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+    min-width: 72px;
+    text-align: center;
+}
+
+.resource-download-btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.resource-download-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

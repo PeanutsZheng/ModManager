@@ -6,15 +6,11 @@ const appWindow = getCurrentWebviewWindow();
 interface TitleBarProps {
     leftSidebarCollapsed?: boolean;
     onLeftSidebarToggle?: () => void;
-    rightPanelOpen?: boolean;
-    onRightPanelToggle?: () => void;
 }
 
 const TitleBar = ({
     leftSidebarCollapsed,
     onLeftSidebarToggle,
-    rightPanelOpen,
-    onRightPanelToggle,
 }: TitleBarProps) => {
     const handleMinimize = () => appWindow.minimize();
     const handleClose = () => appWindow.close();
@@ -34,15 +30,6 @@ const TitleBar = ({
                 <span className="TitleBarTitle" data-tauri-drag-region>Mod Manager</span>
             </div>
             <div className="TitleBarButtons">
-                {onRightPanelToggle && (
-                    <button
-                        className={`TitleBarBtn panel-toggle-btn ${rightPanelOpen ? "active" : ""}`}
-                        onClick={onRightPanelToggle}
-                        title={rightPanelOpen ? "Close panel" : "Open panel"}
-                    >
-                        <span className="ToggleIcon">{rightPanelOpen ? "›" : "‹"}</span>
-                    </button>
-                )}
                 <button className="TitleBarBtn minimize" onClick={handleMinimize} title="Minimize">
                     &#x2014;
                 </button>
