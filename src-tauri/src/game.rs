@@ -125,16 +125,3 @@ pub fn get_game_log(state: tauri::State<'_, Mutex<AppState>>) -> Result<Vec<Stri
         .map_err(|e| format!("Lock error: {}", e))?;
     Ok(buf.clone())
 }
-
-/// Kill the game process if it is running.
-#[tauri::command]
-pub fn kill_game(state: tauri::State<'_, Mutex<AppState>>) -> Result<(), String> {
-    let mut app = state.lock().map_err(|e| format!("Lock error: {}", e))?;
-    if let Some(ref mut child) = app.child {
-        child
-            .kill()
-            .map_err(|e| format!("Failed to kill game: {}", e))?;
-        app.child = None;
-    }
-    Ok(())
-}

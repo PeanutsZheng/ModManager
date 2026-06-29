@@ -4,10 +4,10 @@ use std::sync::{Arc, Mutex};
 
 use tokio_util::sync::CancellationToken;
 
-mod mods;
-mod game;
-mod config;
 mod bepinex;
+mod config;
+mod game;
+mod mods;
 mod resource;
 
 /* ===== Shared types ===== */
@@ -88,7 +88,7 @@ pub fn run() {
             game::launch_game,
             game::is_game_running,
             game::get_game_log,
-            game::kill_game,
+
             // Config
             config::scan_configs,
             config::read_config,

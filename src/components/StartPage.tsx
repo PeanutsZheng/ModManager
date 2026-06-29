@@ -34,33 +34,38 @@ const StartPage = () => {
                 if (installedVersion) {
                     showPopUp(`BepInEx ${installedVersion} detected. Mod runtime environment is ready.`, 3000);
                 } else {
-                    // Version not detected from log — launch game silently to generate it
-                    showPopUp("BepInEx files detected. Launching game to verify version...", 4000);
+                    // Version not detected from log — Need a first run to generate it.
+                    showPopUp("BepInEx files found, but version could not be detected. The framework may need a first run.", 5000);
 
-                    try {
-                        await invoke("launch_game", { exeName: GAME_EXE });
+                    /* 
+                    The following code will cause the download of Unity resources to fail for the first run, thereby preventing 
+                    the game from properly obtaining Unity resources and affecting its normal operation afterwards. So I delete it.
+                    */
 
-                        // Wait a few seconds for BepInEx to write its log
-                        await new Promise(resolve => setTimeout(resolve, 8000));
+                    // showPopUp("BepInEx files detected. Launching game to verify version...", 4000);
+                    // try {
+                    //     await invoke("launch_game", { exeName: GAME_EXE });
 
-                        // Try reading version from log
-                        const version = await invoke<string | null>("get_installed_bepinex_version");
+                    //     // Wait a few seconds for BepInEx to write its log
+                    //     await new Promise(resolve => setTimeout(resolve, 3000));
 
-                        if (version) {
-                            showPopUp(`BepInEx ${version} confirmed. Mod runtime environment is ready.`, 3000);
-                        } else {
-                            showPopUp("BepInEx files found, but version could not be detected. The framework may need a first run.", 5000);
-                        }
+                    //     // Try reading version from log
+                    //     const version = await invoke<string | null>("get_installed_bepinex_version");
 
-                        // Kill the game after version check
-                        try {
-                            await invoke("kill_game");
-                        } catch {
-                            // Ignore kill errors
-                        }
-                    } catch (e) {
-                        showPopUp(`Failed to launch game for version check: ${String(e)}`);
-                    }
+                    //     if (version) {
+                    //         showPopUp(`BepInEx ${version} confirmed. Mod runtime environment is ready.`, 3000);
+                    //     } else {
+                    //     }
+
+                    //     // Kill the game after version check
+                    //     try {
+                    //         await invoke("kill_game");
+                    //     } catch {
+                    //         // Ignore kill errors
+                    //     }
+                    // } catch (e) {
+                    //     showPopUp(`Failed to launch game for version check: ${String(e)}`);
+                    // }
                 }
             } else {
                 const missingList = result.missing.join(", ");
